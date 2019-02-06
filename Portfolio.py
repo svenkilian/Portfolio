@@ -940,7 +940,7 @@ def select_by_rank_and_distance(n_select, obj_val):
             break
     if len(parents) < n_select:
         rem = n_select - len(parents)  # Remaining spots to fill
-        front_by_cd = np.argsort(- crowding_distance(pf, pareto_fronts[front_n], obj_val))  # Sort font by cd (desc.)
+        front_by_cd = np.argsort(- crowding_distance(pf, pareto_fronts[front_n], obj_val))  # Sort front by cd (desc.)
         add_front = pareto_fronts[front_n][front_by_cd[:rem]]
         # print('Add front: ')
         # print(add_front)
@@ -1002,7 +1002,7 @@ if __name__ == '__main__':
     # ax.plot(z1, z2, '.', label='Random Search: Non-Robust')
     # data['rs_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=10000)
+    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=1000)
     ax.plot(z1, z2, '.', label='Analytical: Non-Robust')
     data['an_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
