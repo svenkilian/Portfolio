@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import Functions as Fc
 from Functions import *
-from Portfolio import * # Comme
+from Portfolio import *
 from numpy.linalg import norm
 from gurobipy import *
 from pyDOE import *
