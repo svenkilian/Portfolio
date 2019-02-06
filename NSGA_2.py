@@ -4,7 +4,7 @@ import Functions as Fc
 from Functions import *
 from Portfolio import *
 from numpy.linalg import norm
-from gurobipy import *
+from gurobipy import * # fix
 from pyDOE import *
 
 
