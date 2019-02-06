@@ -236,7 +236,7 @@ def crowding_distance(pf, front, obj_val):
     distance = np.zeros(len(front))
     obj_min_max = np.zeros((pf.dim_obj, 2))
     for obj in range(pf.dim_obj):
-        obj_min_max[obj] = np.array([np.min(obj_values[:, obj]), np.max(obj_values[:, obj])])
+        obj_min_max[obj] = [np.min(obj_values[:, obj]), np.max(obj_values[:, obj])]
         sorted_m = np.argsort(obj_values[:, obj])
         distance[sorted_m[0]] = 100000000
         distance[sorted_m[len(sorted_m) - 1]] = 100000000
@@ -1002,7 +1002,7 @@ if __name__ == '__main__':
     # ax.plot(z1, z2, '.', label='Random Search: Non-Robust')
     # data['rs_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=1000)
+    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=300)
     ax.plot(z1, z2, '.', label='Analytical: Non-Robust')
     data['an_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
