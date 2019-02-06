@@ -44,7 +44,7 @@ class Portfolio:
         self.pvar = np.zeros(self.popsize)  # Variance values for current population
         self.nwsum = nwsum  # Number of betas tested
         # self.betas = range(1, self.nwsum + 1)  # Array of tested betas
-        self.betas = np.logspace(-1, 3, num=self.nwsum, base=10.0)  # Array of tested betas
+        self.betas = np.logspace(-3, 3, num=self.nwsum, base=10.0)  # Array of tested betas
 
         self.portfolio_dec = np.zeros((self.nwsum, self.dim_dec))  # Optimal portfolio allocation for all betas
         self.portfolio_obj = np.zeros((self.nwsum, self.dim_obj))  # Objective values for Return and Risk for all betas
@@ -109,7 +109,7 @@ class Portfolio:
                 while test_values[i] > self.eta:
                     if verbose:
                         print('Violation in Initial Solution %d \n' % i)
-                        print('Test old: %g' % test_values[i])
+                        # print('Test old: %g' % test_values[i])
                     initial_population[:, i] = lhs(3, 1)
                     col_sum = sum(initial_population[:, i])
                     initial_population[:, i] = initial_population[:,
@@ -118,9 +118,10 @@ class Portfolio:
                         Fc.obj_value(self, initial_population[:, i]))
                     test_values[i] = norm(diff_new) / norm(Fc.obj_value(self, initial_population[:, i]))
                     if verbose == 1:
-                        print('Test new: %g  \n' % test_values[i])
-                        print(initial_population[:, i])
-                        print('\n')
+                        # print('Test new: %g  \n' % test_values[i])
+                        # print(initial_population[:, i])
+                        # print('\n')
+                        pass
 
         return initial_population
 
