@@ -44,7 +44,7 @@ class Portfolio:
         self.pvar = np.zeros(self.popsize)  # Variance values for current population
         self.nwsum = nwsum  # Number of betas tested
         # self.betas = range(1, self.nwsum + 1)  # Array of tested betas
-        self.betas = np.logspace(-1, 3, num=self.nwsum, base=10.0)  # Array of tested betas
+        self.betas = np.logspace(-2, 4, num=self.nwsum, base=10.0)  # Array of tested betas
 
         self.portfolio_dec = np.zeros((self.nwsum, self.dim_dec))  # Optimal portfolio allocation for all betas
         self.portfolio_obj = np.zeros((self.nwsum, self.dim_obj))  # Objective values for Return and Risk for all betas
@@ -92,7 +92,7 @@ class Portfolio:
         Initializes population randomly using Latin Hypercube Sampling
         :return:
         """
-        random_set = lhs(3, self.popsize)  # Generate random sample through Latin Hypercube Sampling
+        random_set = lhs(3, self.popsize, criterion='centermaximin')  # Generate random sample through Latin Hypercube Sampling
         row_sum = np.asarray([sum(random_set[i, :]) for i in range(self.popsize)])
         initial_population = np.transpose(random_set / row_sum[:, None])  # Standardize initial solution population
 

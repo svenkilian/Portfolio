@@ -21,23 +21,15 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
     # Real-time plotting
     if real_time:
         axes = plt.gca()
-        axes.set_xlim(10, 15)
-        axes.set_ylim(0, 12)
-        axes.margins(0.8, 1.0)
         # ---- Style plot
-        plt.xlabel('Expected Return')
-        plt.ylabel('Expected Risk')
         plt.title('Pareto Front with NSGA-II \n'
                   'Runs: %d, population size: %d, \n'
                   'Delta: %g, h: %d'
                   % (pf.nruns, pf.popsize, pf.delta, pf.h))
 
-        fig = plt.gcf()
-        fig.set_size_inches(10, 7)
-        plt.margins(0.8, 1.0)
         scatter, = plt.plot([], [], '.', label='NSGA-II')
         legend = plt.gca().legend(loc='best', shadow=True, fontsize='small', frameon=None,
-                           fancybox=True)
+                                  fancybox=True)
 
     # JOB: Main Loop
     for iteration in range(pf.nruns):
@@ -52,7 +44,8 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
             mating_pool = pf.tournament_selection(n_parents=pf.popsize, obj_vals=obj_val, ranks=Fc.fronts(obj_val)[1])
             # print('\nFirst Iteration')
         else:
-            mating_pool = pf.tournament_selection(pf.popsize, obj_vals=obj_val, ranks=Fc.fronts(obj_val)[1], crowded=True)
+            mating_pool = pf.tournament_selection(pf.popsize, obj_vals=obj_val, ranks=Fc.fronts(obj_val)[1],
+                                                  crowded=True)
             # print('\nIteration %d' % (iteration + 1))
         # Match parents from mating pool
         mating_pool_parents = np.random.choice(range(len(mating_pool)), size=((int(0.5 * len(mating_pool))), 2),

@@ -10,7 +10,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pyDOE import *
 
-
 if __name__ == '__main__':
     end_sim, begin_sim = 0, 0
     # JOB: Set Metaparameters
@@ -24,8 +23,24 @@ if __name__ == '__main__':
 
     # JOB: Run optimization and plot results
     fig, ax = plt.subplots()
-    # legend = ax.legend(loc='best', shadow=True, fontsize='small', frameon=None,
-    #                    fancybox=True)
+    # ---- Style plot ----
+    legend = ax.legend(loc='best', shadow=True, fontsize='small', frameon=None,
+                       fancybox=True)
+    axes = plt.gca()
+    axes.set_xlim(10, 15.5)
+    axes.set_ylim(0, 14)
+    axes.margins(0.8, 1.0)
+
+    plt.xlabel('Expected Return')
+    plt.ylabel('Expected Risk')
+    plt.title('Pareto Front \n'
+              'Runs: %d, population size: %d, \n'
+              'Delta: %g, h: %d'
+              % (pf.nruns, pf.popsize, pf.delta, pf.h))
+
+    fig = plt.gcf()
+    fig.set_size_inches(10, 7)
+    plt.margins(0.8, 1.0)
 
     # ---- Run Non-Robust Optimization ----
     opt_type = 'non_robust'
@@ -38,11 +53,11 @@ if __name__ == '__main__':
     # ax.plot(z1, z2, '.', label='Random Search: Non-Robust')
     # data['rs_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=200)
-    ax.plot(z1, z2, '.', label='Analytical: Non-Robust')
+    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=250)
+    ax.plot(z1, z2, '-', label='Analytical: Non-Robust')
     data['an_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=250, n_runs=1000, real_time=True)
+    z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=1000, n_runs=500, real_time=True)
     ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
     data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
 
