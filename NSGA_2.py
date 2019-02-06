@@ -98,6 +98,8 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
     if real_time:
         scatter.set_xdata([])
         scatter.set_ydata([])
+        scatter.remove()
+
     print('Simulation time: %g seconds' % (end_sim - begin_sim))
     print('\n')
     # Calculate objective values

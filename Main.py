@@ -13,8 +13,8 @@ from pyDOE import *
 if __name__ == '__main__':
     end_sim, begin_sim = 0, 0
     # JOB: Set Metaparameters
-    h = 20
-    delta = 0.28
+    h = 10
+    delta = 0.25
 
     # JOB: Create Optimization Problem Instance
     pf = Portfolio(eta=0, delta=delta, h=h)
@@ -53,13 +53,13 @@ if __name__ == '__main__':
     # ax.plot(z1, z2, '.', label='Random Search: Non-Robust')
     # data['rs_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=250)
+    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=200)
     ax.plot(z1, z2, '-', label='Analytical: Non-Robust')
     data['an_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=1000, n_runs=500, real_time=True)
-    ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
-    data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
+    # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=1000, n_runs=500, real_time=True)
+    # ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
+    # data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
 
     print('Finished Non-Robust Optimization Runs')
 
@@ -77,22 +77,22 @@ if __name__ == '__main__':
         # data['rs_%s_%g' % (opt_type, d)] = pf.portfolio_dec
         # print([np.sum(pf.portfolio_dec[i, :]) for i in range(pf.nwsum)])
 
-        z1, z2, pf = solve_analytical(delta=d, opt_type='robust', h=h, nwsum=20)
-        ax.plot(z1, z2, '.', label='Analytical: Robust, Delta=%g' % d)
-        data['an_%s_%g' % (opt_type, d)] = pf.portfolio_dec
+        # z1, z2, pf = solve_analytical(delta=d, opt_type='robust', h=h, nwsum=20)
+        # ax.plot(z1, z2, '.', label='Analytical: Robust, Delta=%g' % d)
+        # data['an_%s_%g' % (opt_type, d)] = pf.portfolio_dec
         # print([np.sum(pf.portfolio_dec[i, :]) for i in range(pf.nwsum)])
 
-        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=250, n_runs=1000, delta=d, h=h, opt_type='robust',
-                                                      real_time=True)
-        ax.plot(z1, z2, '.', label='NSGA-II: Robust, Delta=%g' % d)
-        data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
+        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=250, n_runs=1000, delta=d, h=h, opt_type='robust',
+        #                                               real_time=True)
+        # ax.plot(z1, z2, '.', label='NSGA-II: Robust, Delta=%g' % d)
+        # data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
 
         # print('Finished Robust Optimization runs of Type I')
         pass
 
     # ---- Run Robust Optimization of Type II ----
     opt_type = 'robust_2'
-    eta_s = np.linspace(0.022, 0.03, 1)
+    eta_s = np.linspace(0.025, 0.05, 2)
 
     for eta in eta_s:
         # z1, z2, pf, begin_sim, end_sim = solve_GA('robust_2', h=h, delta=delta, eta=eta, verbose=False)
@@ -107,10 +107,15 @@ if __name__ == '__main__':
         # ax.plot(z1, z2, '.', label='Random Search: Robust Type II')
         # data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
 
-        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=500, n_runs=1000, eta=eta, h=h, opt_type='robust_2',
-        #                                               real_time=True, verbose=False)
-        # ax.plot(z1, z2, '.', label='NSGA-II: Robust Type II, Delta=%g' % d)
-        # data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
+        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=100, eta=eta, h=h, opt_type='robust_2',
+                                                      real_time=True, verbose=False)
+        # comb = np.array([z1, z2])
+        # print(comb)
+        # print(comb.shape)
+        # s1, s2 = np.sort(comb, axis=0)[:, 0], np.sort(comb, axis=0)[:, 1]
+
+        ax.plot(z1, z2, '-', label='NSGA-II: Robust Type II, Delta=%g' % d)
+        data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
         pass
 
     # print('Finished Type II Robustness')

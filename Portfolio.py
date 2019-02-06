@@ -44,7 +44,7 @@ class Portfolio:
         self.pvar = np.zeros(self.popsize)  # Variance values for current population
         self.nwsum = nwsum  # Number of betas tested
         # self.betas = range(1, self.nwsum + 1)  # Array of tested betas
-        self.betas = np.logspace(-2, 4, num=self.nwsum, base=10.0)  # Array of tested betas
+        self.betas = np.logspace(-1, 3, num=self.nwsum, base=10.0)  # Array of tested betas
 
         self.portfolio_dec = np.zeros((self.nwsum, self.dim_dec))  # Optimal portfolio allocation for all betas
         self.portfolio_obj = np.zeros((self.nwsum, self.dim_obj))  # Objective values for Return and Risk for all betas
