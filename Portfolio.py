@@ -236,7 +236,7 @@ def crowding_distance(pf, front, obj_val):
     distance = np.zeros(len(front))
     obj_min_max = np.zeros((pf.dim_obj, 2))
     for obj in range(pf.dim_obj):
-        obj_min_max[obj] = [np.min(obj_values[:, obj]), np.max(obj_values[:, obj])] # Save
+        obj_min_max[obj] = [np.min(obj_values[:, obj]), np.max(obj_values[:, obj])]  # Save
         sorted_m = np.argsort(obj_values[:, obj])
         distance[sorted_m[0]] = 100000000
         distance[sorted_m[len(sorted_m) - 1]] = 100000000
