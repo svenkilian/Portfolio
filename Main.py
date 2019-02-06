@@ -83,7 +83,7 @@ if __name__ == '__main__':
         print([np.sum(pf.portfolio_dec[i, :]) for i in range(pf.nwsum)])
 
         z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=250, n_runs=200, delta=d, h=h, opt_type='robust',
-                                                      real_time=True)
+                                                      real_time=False)
         ax.plot(z1, z2, '.', label='NSGA-II: Robust, Delta=%g' % d)
         data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
 
