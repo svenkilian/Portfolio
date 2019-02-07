@@ -201,7 +201,7 @@ def solve_random_search(opt_type='non_robust', delta=0.2, h=100, eta=1.285):
 
 
 def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressure=0.5, mutation_r=0.8,
-             verbose='silent'):
+             verbose=False):
     """
     Solves optimization problem by means of a genetic algorithm
     :param selective_pressure: Proportion of population chosen into mating pool
@@ -288,7 +288,7 @@ def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressu
                 test_value = float(norm(diff)) / norm(obj_val)
 
                 if test_value > eta or any(offspring[:, i] < 0):
-                    if verbose == 1:
+                    if verbose:
                         print('Violation in Offspring Solution %d, Perform Re-Crossover  \n' % i)
                         if test_value > eta:
                             print('Threshold violation.')
@@ -320,7 +320,7 @@ def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressu
                     offspring[:, i] = offspring[:, i] / float(col_sum)
 
                     if any(offspring[:, i] < 0):
-                        if verbose == 1:
+                        if verbose:
                             print('Violation in Offspring Solution %d, Perform Re-Crossover \n' % i)
                     else:
                         i += 1
@@ -348,7 +348,7 @@ def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressu
                     # Calculate test value
                     test_value = float(norm(diff)) / norm(obj_val)
                     if test_value > eta:
-                        if verbose == 1:
+                        if verbose:
                             print('Violation in Mutated Offspring Solution %d, Perform Re-Crossover \n' % i)
                         continue
                     else:

@@ -92,7 +92,8 @@ class Portfolio:
         Initializes population randomly using Latin Hypercube Sampling
         :return:
         """
-        random_set = lhs(3, self.popsize, criterion='centermaximin')  # Generate random sample through Latin Hypercube Sampling
+        random_set = lhs(3, self.popsize,
+                         criterion='centermaximin')  # Generate random sample through Latin Hypercube Sampling
         row_sum = np.asarray([sum(random_set[i, :]) for i in range(self.popsize)])
         initial_population = np.transpose(random_set / row_sum[:, None])  # Standardize initial solution population
 
@@ -114,10 +115,11 @@ class Portfolio:
                     col_sum = sum(initial_population[:, i])
                     initial_population[:, i] = initial_population[:,
                                                i] / col_sum  # Replacement with standardized solution
-                    diff_new = np.array(Functions.obj_eff(self, initial_population[:, i], self.delta, self.h)) - np.array(
+                    diff_new = np.array(
+                        Functions.obj_eff(self, initial_population[:, i], self.delta, self.h)) - np.array(
                         Fc.obj_value(self, initial_population[:, i]))
                     test_values[i] = norm(diff_new) / norm(Fc.obj_value(self, initial_population[:, i]))
-                    if verbose == 1:
+                    if verbose:
                         # print('Test new: %g  \n' % test_values[i])
                         # print(initial_population[:, i])
                         # print('\n')
@@ -130,10 +132,10 @@ class Portfolio:
         Performs binary tournament selection and returns parent generation from population
         :return: parent generation
         """
+        parent_gen = np.empty(n_parents)
+        random_samples = np.random.choice(range(self.popsize), size=(n_parents, 2), replace=True)
 
         if pcrit is not None:  # Standard GA
-            parent_gen = np.empty(n_parents)
-            random_samples = np.random.choice(range(self.popsize), size=(n_parents, 2), replace=True)
             for i in range(n_parents):
                 p_1 = random_samples[i, 0]
                 p_2 = random_samples[i, 1]
@@ -142,8 +144,6 @@ class Portfolio:
                         random_samples[i, int(round(random()))]
 
         else:  # NSGA-II
-            parent_gen = np.empty(n_parents)
-            random_samples = np.random.choice(range(self.popsize), size=(n_parents, 2), replace=True)
             for i in range(n_parents):
                 p_1 = random_samples[i, 0]
                 p_2 = random_samples[i, 1]
@@ -159,9 +159,9 @@ class Portfolio:
                         p_2 if ranks[p_1] < ranks[p_2] else \
                             random_samples[i, int(round(random()))]
 
-        return random_samples, parent_gen
+        return parent_gen
 
-    def print_information(self):
+    def print_information(self, silent=False):
         robustness = 'Non-Robustness' if self.opt_type == 'non_robust' else \
             'Robustness Type I' if self.opt_type == 'robust' else \
                 'Robustness Type II' if self.opt_type == 'robust_2' else None
@@ -171,11 +171,14 @@ class Portfolio:
                 'Genetic Algorithm' if self.solver == 'genetic' else \
                     'NSGA-II' if self.solver == 'nsga_2' else None
 
-        print('\nExecution of %s under %s'
-              '\nBetas = %d'
-              '\nRuns/Beta = %d'
-              '\nPopulation Size = %d'
-              '\nDelta = %g'
-              '\nH = %d'
-              '\nEta = %g' % (
-                  algorithm, robustness, self.nwsum, self.nruns, self.popsize, self.delta, self.h, self.eta))
+        if not silent:
+            print('\nExecution of %s under %s'
+                  '\nBetas = %d'
+                  '\nRuns/Beta = %d'
+                  '\nPopulation Size = %d'
+                  '\nDelta = %g'
+                  '\nH = %d'
+                  '\nEta = %g' % (
+                      algorithm, robustness, self.nwsum, self.nruns, self.popsize, self.delta, self.h, self.eta))
+        else:
+            return robustness

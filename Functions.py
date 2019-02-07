@@ -34,9 +34,13 @@ def print_progress(iteration, total, prefix='', prog='', round_avg=0, suffix='',
     sys.stdout.flush()
 
 
-def crossover(pf, obj_val, mating_pool_parents, mating_pool, eta, verbose, opt_type):
+def crossover(pf, obj_val, mating_pool_parents, mating_pool, eta, verbose, opt_type, crosstype='alpha'):
     """
     Perform crossover from mating pool to generate offspring
+    Recombine parents using crossover for real-valued representations (Alpha-Blend Crossover)
+    :param obj_val:
+    :param crosstype:
+    :param opt_type:
     :param mating_pool_parents:
     :param mating_pool:
     :param eta:
@@ -46,91 +50,189 @@ def crossover(pf, obj_val, mating_pool_parents, mating_pool, eta, verbose, opt_t
 
     # Generate set of random numbers for crossover
     random_numbers = np.random.rand(len(mating_pool_parents), pf.dim_dec)
-    # Set crossover parameter
-    alpha = 0.5
-    # Calculate gamma from random numbers and alpha
-    gamma = np.zeros((len(mating_pool_parents), pf.dim_dec))
-    for i in range(gamma.shape[0]):
-        for j in range(gamma.shape[1]):
-            gamma[i][j] = (1 + 2 * alpha) * random_numbers[i][j] - alpha
-
     # Initialize and create offspring through crossover operation
     offspring = np.zeros((pf.dim_dec, len(mating_pool)))
 
-    # JOB: Perform crossover for type 2 robustness
-    if opt_type == 'robust_2':
-        i = 0
-    flag = False
-    while i < offspring.shape[1]:
-        for j in range(pf.dim_dec):
-            if i < (offspring.shape[1] / 2):
-                if flag:
-                    rn = np.random.rand()
-                    offspring[j][i] = rn * pf.pwm[j, mating_pool_parents[i, 0]] + (
-                            1 - rn) * \
-                                      pf.pwm[j, mating_pool_parents[i, 1]]
-                else:
-                    offspring[j][i] = gamma[i][j] * pf.pwm[j, mating_pool_parents[i, 0]] + (
-                            1 - gamma[i][j]) * \
-                                      pf.pwm[j, mating_pool_parents[i, 1]]
-            else:
-                if flag:
-                    rn = np.random.rand()
-                    offspring[j][i] = rn * pf.pwm[
-                        j, mating_pool_parents[i - mating_pool_parents.shape[0], 0]] + (
-                                              1 - rn) * pf.pwm[
-                                          j, mating_pool_parents[i - mating_pool_parents.shape[0], 1]]
-                else:
-                    offspring[j][i] = (1 - gamma[i - mating_pool_parents.shape[0]][j]) * pf.pwm[
-                        j, mating_pool_parents[i - mating_pool_parents.shape[0], 0]] \
-                                      + gamma[i - mating_pool_parents.shape[0]][j] * pf.pwm[
-                                          j, mating_pool_parents[i - mating_pool_parents.shape[0], 1]]
-        # JOB: Check if child is feasible
-        col_sum = np.sum(offspring[:, i])
-        offspring[:, i] = offspring[:, i] / float(col_sum)  # Normalize solution
-        obj_effective = np.array(obj_eff(pf, offspring[:, i], pf.delta, pf.h))
-        obj_val = np.array(obj_value(pf, offspring[:, i]))
-        diff = obj_effective - obj_val
-        # Calculate test value
-        test_value = float(norm(diff)) / norm(obj_val)
+    # JOB: Crossover for crossover type 'Alpha Crossover'
+    if crosstype == 'alpha':
+        # Set crossover parameter
+        alpha = 0.5
+        # Calculate gamma from random numbers and alpha
+        gamma = np.zeros((len(mating_pool_parents), pf.dim_dec))
+        for i in range(gamma.shape[0]):
+            for j in range(gamma.shape[1]):
+                gamma[i][j] = (1 + 2 * alpha) * random_numbers[i][j] - alpha
 
-        if test_value > eta or any(offspring[:, i] < 0):
-            if verbose == 1:
-                print('Violation in Offspring Solution %d, Perform Re-Crossover  \n' % i)
-                if test_value > eta:
-                    print('Threshold violation.')
-                else:
-                    print('Non-negativity violation.')
-                    print(offspring[:, i])
-            flag = True
-            continue
-        else:
+        # JOB: Perform crossover for type 2 robustness
+        if opt_type == 'robust_2':
+            i = 0
             flag = False
-            i += 1
+            while i < offspring.shape[1]:
+                for j in range(pf.dim_dec):
+                    if i < (offspring.shape[1] / 2):
+                        if flag:
+                            rand_gamma = (1 + 2 * alpha) * np.random.rand() - alpha
+                            offspring[j][i] = rand_gamma * pf.pwm[j, mating_pool_parents[i, 0]] + (
+                                    1 - rand_gamma) * \
+                                              pf.pwm[j, mating_pool_parents[i, 1]]
+                        else:
+                            offspring[j][i] = gamma[i][j] * pf.pwm[j, mating_pool_parents[i, 0]] + (
+                                    1 - gamma[i][j]) * \
+                                              pf.pwm[j, mating_pool_parents[i, 1]]
+                    else:
+                        if flag:
+                            rand_gamma = (1 + 2 * alpha) * np.random.rand() - alpha
+                            offspring[j][i] = rand_gamma * pf.pwm[
+                                j, mating_pool_parents[i - mating_pool_parents.shape[0], 0]] + (
+                                                      1 - rand_gamma) * pf.pwm[
+                                                  j, mating_pool_parents[i - mating_pool_parents.shape[0], 1]]
+                        else:
+                            offspring[j][i] = (1 - gamma[i - mating_pool_parents.shape[0]][j]) * pf.pwm[
+                                j, mating_pool_parents[i - mating_pool_parents.shape[0], 0]] \
+                                              + gamma[i - mating_pool_parents.shape[0]][j] * pf.pwm[
+                                                  j, mating_pool_parents[i - mating_pool_parents.shape[0], 1]]
+                # JOB: Check if child is feasible
+                col_sum = np.sum(offspring[:, i])
+                offspring[:, i] = offspring[:, i] / float(col_sum)  # Normalize solution
+                obj_effective = np.array(obj_eff(pf, offspring[:, i], pf.delta, pf.h))
+                obj_val = np.array(obj_value(pf, offspring[:, i]))
+                diff = obj_effective - obj_val
+                # Calculate test value
+                test_value = float(norm(diff)) / norm(obj_val)
 
-    # JOB: All but robust type 2 cases
-    else:
-        i = 0
-        while i < offspring.shape[1]:
-            for j in range(pf.dim_dec):
-                if i < (offspring.shape[1] / 2):
-                    offspring[j][i] = np.abs(
-                        gamma[i][j] * pf.pwm[j, mating_pool_parents[i, 0]] + (1 - gamma[i][j]) * \
-                        pf.pwm[j, mating_pool_parents[i, 1]])
+                if test_value > eta or any(offspring[:, i] < 0):
+                    if verbose:
+                        print('Violation in Offspring Solution %d, Perform Re-Crossover  \n' % i)
+                        if test_value > eta:
+                            print('Threshold violation.')
+                        else:
+                            print('Non-negativity violation.')
+                            print(offspring[:, i])
+                    flag = True
+                    continue
                 else:
-                    offspring[j][i] = np.abs((1 - gamma[i - mating_pool_parents.shape[0]][j]) * pf.pwm[
-                        j, mating_pool_parents[i - mating_pool_parents.shape[0], 0]] \
-                                             + gamma[i - mating_pool_parents.shape[0]][j] * pf.pwm[
-                                                 j, mating_pool_parents[i - mating_pool_parents.shape[0], 1]])
-            # Normalize offspring
-            col_sum = np.sum(offspring[:, i])
-            offspring[:, i] = offspring[:, i] / float(col_sum)
+                    flag = False
+                    i += 1
 
-            if any(offspring[:, i] < 0):
-                if verbose == 1:
-                    print('Violation in Offspring Solution %d, Perform Re-Crossover \n' % i)
-            else:
-                i += 1
+        # JOB: All but robust type 2 cases
+        else:
+            i = 0
+            while i < offspring.shape[1]:
+                for j in range(pf.dim_dec):
+                    if i < (offspring.shape[1] / 2):
+                        offspring[j][i] = np.abs(
+                            gamma[i][j] * pf.pwm[j, mating_pool_parents[i, 0]] + (1 - gamma[i][j]) * \
+                            pf.pwm[j, mating_pool_parents[i, 1]])
+                    else:
+                        offspring[j][i] = np.abs((1 - gamma[i - mating_pool_parents.shape[0]][j]) * pf.pwm[
+                            j, mating_pool_parents[i - mating_pool_parents.shape[0], 0]] \
+                                                 + gamma[i - mating_pool_parents.shape[0]][j] * pf.pwm[
+                                                     j, mating_pool_parents[i - mating_pool_parents.shape[0], 1]])
+                # Normalize offspring
+                col_sum = np.sum(offspring[:, i])
+                offspring[:, i] = offspring[:, i] / float(col_sum)
+
+                if any(offspring[:, i] < 0):
+                    if verbose:
+                        print('Violation in Offspring Solution %d, Perform Re-Crossover \n' % i)
+                else:
+                    i += 1
+
+    # JOB: Crossover for crossover type 'Simulated Binary Crossover'
+    elif crosstype == 'simulated_binary':
+        par_eta = 2
+        co_betas = np.zeros((len(mating_pool_parents), pf.dim_dec))
+
+        for i in range(len(mating_pool_parents)):
+            for j in range(pf.dim_dec):
+                co_betas[i][j] = (2 * random_numbers[i][j]) ** (1.0 / (par_eta + 1)) if np.random.rand() <= 0.5 else \
+                    (1.0 / 2 * (1 - random_numbers[i][j])) ** (1.0 / (par_eta + 1))
+
+        # JOB: Perform crossover for type 2 robustness
+        if opt_type == 'robust_2':
+            i = 0
+            flag = False
+            while i < offspring.shape[1]:
+                for j in range(pf.dim_dec):
+                    if i < (offspring.shape[1] / 2):
+                        if flag:
+                            rn = np.random.rand()
+                            rand_beta = (2 * rn) ** (
+                                    1.0 / (par_eta + 1)) if np.random.rand() <= 0.5 else \
+                                (1.0 / 2 * (1 - rn)) ** (1.0 / (par_eta + 1))
+                            offspring[j][i] = np.abs(
+                                0.5 * ((1 + rand_beta) * (pf.pwm[j, mating_pool_parents[i, 0]]) +
+                                       (1 - rand_beta) * (pf.pwm[j, mating_pool_parents[i, 1]])))
+                        else:
+                            offspring[j][i] = np.abs(
+                                0.5 * ((1 + co_betas[i][j]) * (pf.pwm[j, mating_pool_parents[i, 0]]) +
+                                       (1 - co_betas[i][j]) * (pf.pwm[j, mating_pool_parents[i, 1]])))
+                    else:
+                        if flag:
+                            rn = np.random.rand()
+                            rand_beta = (2 * rn) ** (
+                                    1.0 / (par_eta + 1)) if np.random.rand() <= 0.5 else \
+                                (1.0 / 2 * (1 - rn)) ** (1.0 / (par_eta + 1))
+                            offspring[j][i] = np.abs(0.5 * ((1 - rand_beta) * (
+                                pf.pwm[j, mating_pool_parents[i - len(mating_pool_parents), 0]]) +
+                                                            (1 + rand_beta) * (
+                                                                pf.pwm[
+                                                                    j, mating_pool_parents[
+                                                                        i - len(mating_pool_parents), 1]])))
+                        else:
+                            offspring[j][i] = np.abs(0.5 * ((1 - co_betas[i - len(mating_pool_parents)][j]) * (
+                                pf.pwm[j, mating_pool_parents[i - len(mating_pool_parents), 0]]) +
+                                                            (1 + co_betas[i - len(mating_pool_parents)][j]) * (
+                                                                pf.pwm[
+                                                                    j, mating_pool_parents[
+                                                                        i - len(mating_pool_parents), 1]])))
+                # JOB: Check if child is feasible
+                col_sum = np.sum(offspring[:, i])
+                offspring[:, i] = offspring[:, i] / float(col_sum)  # Normalize solution
+                obj_effective = np.array(obj_eff(pf, offspring[:, i], pf.delta, pf.h))
+                obj_val = np.array(obj_value(pf, offspring[:, i]))
+                diff = obj_effective - obj_val
+                # Calculate test value
+                test_value = float(norm(diff)) / norm(obj_val)
+
+                if test_value > eta or any(offspring[:, i] < 0):
+                    if verbose:
+                        print('\nViolation in Offspring Solution %d, Perform Re-Crossover  \n' % i)
+                        if test_value > eta:
+                            print('Threshold violation.')
+                        else:
+                            print('Non-negativity violation.')
+                            print(offspring[:, i])
+                    flag = True
+                    continue
+                else:
+                    flag = False
+                    i += 1
+
+        # JOB: For all but robust type 2 cases
+        else:
+            i = 0
+            while i < offspring.shape[1]:
+                for j in range(pf.dim_dec):
+                    if i < (offspring.shape[1] / 2):
+                        offspring[j][i] = np.abs(0.5 * ((1 + co_betas[i][j]) * (pf.pwm[j, mating_pool_parents[i, 0]]) +
+                                                        (1 - co_betas[i][j]) * (pf.pwm[j, mating_pool_parents[i, 1]])))
+                    else:
+                        offspring[j][i] = np.abs(0.5 * ((1 - co_betas[i - len(mating_pool_parents)][j]) * (
+                            pf.pwm[j, mating_pool_parents[i - len(mating_pool_parents), 0]]) +
+                                                        (1 + co_betas[i - len(mating_pool_parents)][j]) * (
+                                                            pf.pwm[
+                                                                j, mating_pool_parents[
+                                                                    i - len(mating_pool_parents), 1]])))
+                # Normalize offspring
+                col_sum = np.sum(offspring[:, i])
+                offspring[:, i] = offspring[:, i] / float(col_sum)
+
+                if any(offspring[:, i] < 0):
+                    if verbose:
+                        print('Violation in Offspring Solution %d, Perform Re-Crossover \n' % i)
+                else:
+                    i += 1
     return offspring
 
 
@@ -142,7 +244,7 @@ def mutate(pf, offspring, mutation_r, eta, verbose, opt_type):
             if np.random.binomial(1, mutation_r):
                 while True:
                     temp = offspring[j][i]
-                    offspring[j][i] += np.random.normal(0, 0.05)
+                    offspring[j][i] += np.random.normal(0, 0.15)
                     if offspring[j][i] >= 0:  # Ensure feasibility with respect tro non-negativity constraint
                         break
                     else:
@@ -158,7 +260,7 @@ def mutate(pf, offspring, mutation_r, eta, verbose, opt_type):
             # Calculate test value
             test_value = float(norm(diff)) / norm(obj_val)
             if test_value > eta:
-                if verbose == 1:
+                if verbose:
                     print('Violation in Mutated Offspring Solution %d, Perform Re-Crossover \n' % i)
                 continue
             else:
