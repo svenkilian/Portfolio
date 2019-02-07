@@ -6,6 +6,7 @@ from Portfolio import *
 from numpy.linalg import norm
 from gurobipy import *
 from pyDOE import *
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=100, eta=0.03, mutation_r=0.2,
@@ -20,17 +21,28 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
 
     # Real-time plotting
     if real_time:
-        axes = plt.gca()
         # ---- Style plot
         plt.title('Pareto Front with NSGA-II \n'
                   'Runs: %d, population size: %d, \n'
                   'Delta: %g, h: %d'
                   % (pf.nruns, pf.popsize, pf.delta, pf.h))
-
         scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%g' % (
-        pf.print_information(silent=True), pf.delta, pf.eta))
-        legend = plt.gca().legend(loc='best', shadow=True, fontsize='small', frameon=None,
-                                  fancybox=True)
+            pf.print_information(silent=True), pf.delta, pf.eta))
+        plt.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
+
+        is_plot = plt.figure()
+        ax = is_plot.add_subplot(111, projection='3d')
+        ax.legend(loc='best', shadow=True, fontsize='small', frameon=None,
+                                     fancybox=True)
+        ax.set_xlabel('x_1')
+        ax.set_ylabel('x_2')
+        ax.set_zlabel('x_3')
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_zlim(0, 1)
+
+        sc_plot = ax.scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
+        is_plot.show()
 
     # JOB: Main Loop
     for iteration in range(pf.nruns):
@@ -89,11 +101,12 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
 
             scatter.set_xdata(objs[:, 0])
             scatter.set_ydata(objs[:, 1])
+            sc_plot._offsets3d = (pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :])
             # legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), shadow=True, fontsize='small', frameon=None,
             #                    fancybox=True)
             plt.draw()
             plt.pause(1e-25)
-            time.sleep(1e-25)
+            # time.sleep(1e-25)
 
     end_sim = time.time()
     if real_time:
