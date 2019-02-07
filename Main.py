@@ -1,4 +1,4 @@
-from __future__ import print_function ## Change ww
+from __future__ import print_function  ## Change ww
 import time
 from Functions import *
 from config import *
@@ -57,9 +57,15 @@ if __name__ == '__main__':
     ax.plot(z1, z2, '-', label='Analytical: Non-Robust')
     data['an_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=100, n_runs=500, real_time=True)
-    # ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
-    # data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
+    z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=20, crosstype='alpha', real_time=True)
+    ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
+    data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
+
+    z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=20, crosstype='simulated_binary', real_time=True)
+    ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
+    data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
+
+
 
     print('Finished Non-Robust Optimization Runs')
 
@@ -107,15 +113,16 @@ if __name__ == '__main__':
         # ax.plot(z1, z2, '.', label='Random Search: Robust Type II')
         # data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
 
-        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=100, n_runs=25, eta=eta, h=h, opt_type='robust_2',
-                                                      real_time=True, verbose=False, delta=0.28)
+        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=100, n_runs=25, eta=eta, h=h, opt_type='robust_2',
+        #                                               crosstype='simulated_binary',
+        #                                               real_time=True, verbose=False, delta=0.28)
         # comb = np.array([z1, z2])
         # print(comb)
         # print(comb.shape)
         # s1, s2 = np.sort(comb, axis=0)[:, 0], np.sort(comb, axis=0)[:, 1]
 
-        ax.plot(z1, z2, '.', label='NSGA-II: Robust Type II, Delta=%g, Eta=%g' % (d, eta))
-        data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
+        # ax.plot(z1, z2, '.', label='NSGA-II: Robust Type II, Delta=%g, Eta=%g' % (d, eta))
+        # data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
         pass
 
     # print('Finished Type II Robustness')

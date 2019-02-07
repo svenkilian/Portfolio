@@ -9,7 +9,7 @@ from pyDOE import *
 
 
 def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=100, eta=0.03, mutation_r=0.2,
-                 verbose='silent', real_time=False):
+                 crosstype='simulated_binary', verbose='silent', real_time=False):
     pf = Portfolio(n_runs=n_runs, popsize=popsize, eta=eta, delta=delta, h=h, nwsum=0, solver='nsga_2',
                    opt_type=opt_type,
                    verbose=verbose)  # Create simulation instance
@@ -54,7 +54,7 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
 
         # JOB: Perform Crossover to generate offspring
         offspring = crossover(pf=pf, obj_val=obj_val, mating_pool_parents=mating_pool_parents, mating_pool=mating_pool,
-                              eta=pf.eta, verbose=verbose, opt_type=opt_type, crosstype='simulated_binary')
+                              eta=pf.eta, verbose=verbose, opt_type=opt_type, crosstype=crosstype)
 
         # JOB: Mutate offspring
         offspring = mutate(pf=pf, offspring=offspring, mutation_r=mutation_r, eta=pf.eta, verbose=verbose,
