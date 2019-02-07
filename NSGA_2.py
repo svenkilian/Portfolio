@@ -22,27 +22,41 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
     # Real-time plotting
     if real_time:
         # ---- Style plot
-        plt.title('Pareto Front with NSGA-II \n'
-                  'Runs: %d, population size: %d, \n'
-                  'Delta: %g, h: %d'
-                  % (pf.nruns, pf.popsize, pf.delta, pf.h))
-        scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%g' % (
-            pf.print_information(silent=True), pf.delta, pf.eta))
-        plt.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
+        if len(plt.get_fignums()) == 1:
+            plt.figure(1)
+            plt.title('Pareto Front with NSGA-II \n'
+                      'Runs: %d, population size: %d, \n'
+                      'Delta: %g, h: %d'
+                      % (pf.nruns, pf.popsize, pf.delta, pf.h))
+            scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%g' % (
+                pf.print_information(silent=True), pf.delta, pf.eta))
+            plt.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
 
-        is_plot = plt.figure()
-        ax = is_plot.add_subplot(111, projection='3d')
-        ax.legend(loc='best', shadow=True, fontsize='small', frameon=None,
-                                     fancybox=True)
-        ax.set_xlabel('x_1')
-        ax.set_ylabel('x_2')
-        ax.set_zlabel('x_3')
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        ax.set_zlim(0, 1)
+            # plt.figure(2)
+            is_figure = plt.figure()
+            is_ax = is_figure.add_subplot(111, projection='3d')
+            is_ax.set_xlabel('x_1')
+            is_ax.set_ylabel('x_2')
+            is_ax.set_zlabel('x_3')
+            is_ax.set_xlim(0, 1)
+            is_ax.set_ylim(0, 1)
+            is_ax.set_zlim(0, 1)
+            is_plot = is_ax.scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
+            is_ax.legend(loc='best', shadow=True, fontsize='small', frameon=None,
+                         fancybox=True)
+            is_figure.show()
 
-        sc_plot = ax.scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
-        is_plot.show()
+        else:
+            plt.figure(1)
+            scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%g' % (pf.print_information(silent=True), pf.delta, pf.eta))
+            plt.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
+            plt.figure(2)
+            is_plot = plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
+            plt.gca().legend(loc='best', shadow=True, fontsize='small', frameon=None,
+                         fancybox=True)
+
+
+
 
     # JOB: Main Loop
     for iteration in range(pf.nruns):
@@ -54,11 +68,14 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
 
         # JOB: Select mating pool from population
         if iteration == 0:
-            mating_pool = pf.tournament_selection(n_parents=pf.popsize, obj_vals=obj_val, ranks=Fc.fronts(obj_val)[1])
+            mating_pool = pf.tournament_selection(n_parents=pf.popsize, obj_vals=obj_val, ranks=Fc.fronts(obj_val)[1],
+                                                  opt_type=opt_type,
+                                                  verbose=verbose)
             # print('\nFirst Iteration')
         else:
             mating_pool = pf.tournament_selection(pf.popsize, obj_vals=obj_val, ranks=Fc.fronts(obj_val)[1],
-                                                  crowded=True)
+                                                  opt_type=opt_type,
+                                                  crowded=True, verbose=verbose)
             # print('\nIteration %d' % (iteration + 1))
         # Match parents from mating pool
         mating_pool_parents = np.random.choice(range(len(mating_pool)), size=((int(0.5 * len(mating_pool))), 2),
@@ -101,9 +118,8 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
 
             scatter.set_xdata(objs[:, 0])
             scatter.set_ydata(objs[:, 1])
-            sc_plot._offsets3d = (pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :])
-            # legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), shadow=True, fontsize='small', frameon=None,
-            #                    fancybox=True)
+            is_plot._offsets3d = (pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :])
+
             plt.draw()
             plt.pause(1e-25)
             # time.sleep(1e-25)
@@ -113,6 +129,8 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
         scatter.set_xdata([])
         scatter.set_ydata([])
         scatter.remove()
+        is_plot._offsets3d = ([], [], [])
+        is_plot.remove()
 
     print('Simulation time: %g seconds' % (end_sim - begin_sim))
     print('\n')

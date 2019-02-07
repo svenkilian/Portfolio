@@ -127,7 +127,8 @@ class Portfolio:
 
         return initial_population
 
-    def tournament_selection(self, n_parents, pcrit=None, ranks=None, crowded=False, obj_vals=None):
+    def tournament_selection(self, n_parents, pcrit=None, ranks=None, crowded=False, obj_vals=None, verbose=False,
+                             opt_type='non_robust'):
         """
         Performs binary tournament selection and returns parent generation from population
         :return: parent generation
@@ -139,25 +140,42 @@ class Portfolio:
             for i in range(n_parents):
                 p_1 = random_samples[i, 0]
                 p_2 = random_samples[i, 1]
-                parent_gen[i] = p_1 if pcrit[p_1] > pcrit[p_2] else \
-                    p_2 if pcrit[p_1] < pcrit[p_2] else \
-                        random_samples[i, int(round(random()))]
+                feasible = np.array([True] * 2)
+                constr_v = np.zeros(2)
+                if opt_type == 'robust_2':
+                    feasible, constr_v = Fc.is_feasible(self, [p_1, p_2], verbose=verbose)
+                parent_gen[i] = p_1 if (feasible[0] and not feasible[1]) else \
+                    p_2 if (feasible[1] and not feasible[0]) else \
+                        p_1 if ((not feasible[0]) and (not feasible[1]) and constr_v[0] < constr_v[1]) else \
+                            p_2 if ((not feasible[0]) and (not feasible[1]) and constr_v[0] > constr_v[1]) else \
+                                p_1 if pcrit[p_1] > pcrit[p_2] else \
+                                    p_2 if pcrit[p_1] < pcrit[p_2] else \
+                                        random_samples[i, int(round(random()))]
 
         else:  # NSGA-II
             for i in range(n_parents):
                 p_1 = random_samples[i, 0]
                 p_2 = random_samples[i, 1]
+                feasible, constr_v = Fc.is_feasible(self, [p_1, p_2], verbose=verbose)
                 if crowded:  # In all but first round: crowded tournament selection
                     cd = Fc.crowding_distance([p_1, p_2], obj_vals)
-                    parent_gen[i] = p_1 if ranks[p_1] < ranks[p_2] else \
-                        p_2 if ranks[p_1] > ranks[p_2] else \
-                            p_1 if cd[0] > cd[1] else \
-                                p_2 if cd[0] < cd[1] else \
-                                    random_samples[i, int(round(random()))]
+                    parent_gen[i] = p_1 if (feasible[0] and not feasible[1]) else \
+                        p_2 if (feasible[1] and not feasible[0]) else \
+                            p_1 if ((not feasible[0]) and (not feasible[1]) and constr_v[0] < constr_v[1]) else \
+                                p_2 if ((not feasible[0]) and (not feasible[1]) and constr_v[0] > constr_v[1]) else \
+                                    p_1 if ranks[p_1] < ranks[p_2] else \
+                                        p_2 if ranks[p_1] > ranks[p_2] else \
+                                            p_1 if cd[0] > cd[1] else \
+                                                p_2 if cd[0] < cd[1] else \
+                                                    random_samples[i, int(round(random()))]
                 else:
-                    parent_gen[i] = p_1 if ranks[p_1] > ranks[p_2] else \
-                        p_2 if ranks[p_1] < ranks[p_2] else \
-                            random_samples[i, int(round(random()))]
+                    parent_gen[i] = p_1 if (feasible[0] and not feasible[1]) else \
+                        p_2 if (feasible[1] and not feasible[0]) else \
+                            p_1 if ((not feasible[0]) and (not feasible[1]) and constr_v[0] < constr_v[1]) else \
+                                p_2 if ((not feasible[0]) and (not feasible[1]) and constr_v[0] > constr_v[1]) else \
+                                    p_1 if ranks[p_1] > ranks[p_2] else \
+                                        p_2 if ranks[p_1] < ranks[p_2] else \
+                                            random_samples[i, int(round(random()))]
 
         return parent_gen
 
