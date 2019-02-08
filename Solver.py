@@ -232,7 +232,7 @@ def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressu
             # JOB: Selection of mating pool
             # Select the selection_pressure * 100% best
             # mating_pool = pf.pwm[:, np.argsort(pcrit)[:-(int(pf.popsize * selective_pressure) + 1):-1]]
-            mating_pool = pf.tournament_selection(n_parents=pf.popsize, pcrit=pcrit, opttype=opt_type, verbose=verbose)
+            mating_pool = pf.tournament_selection(n_parents=pf.popsize, pcrit=pcrit, opt_type=opt_type, verbose=verbose)
             # Match parents from mating pool
             mating_pool_parents = np.random.choice(range(len(mating_pool)),
                                                    size=(int(0.5 * len(mating_pool)), 2), replace=False)
@@ -247,7 +247,7 @@ def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressu
                 for j in range(gamma.shape[1]):
                     gamma[i][j] = (1 + 2 * alpha) * random_numbers[i][j] - alpha
 
-            # Initilize and create offspring through crossover operation
+            # Initialize and create offspring through crossover operation
             offspring = np.zeros((pf.dim_dec, len(mating_pool)))
 
             # JOB: Perform crossover for type 2 robustness

@@ -15,6 +15,8 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
                    opt_type=opt_type,
                    verbose=verbose)  # Create simulation instance
     pf.print_information()
+    eta_disp = pf.eta if opt_type is 'robust_2' else 'N/A'
+    objs = np.zeros(pf.popsize)
 
     # JOB: Main loop for NSGA-II iterations
     begin_sim = time.time()  # Record beginning time of simulation
@@ -25,11 +27,11 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
         if len(plt.get_fignums()) == 1:
             plt.figure(1)
             plt.title('Pareto Front with NSGA-II \n'
-                      'Runs: %d, population size: %d, \n'
-                      'Delta: %g, h: %d'
+                      'Runs = %d, Population Size = %d, \n'
+                      'Delta = %g, H = %d'
                       % (pf.nruns, pf.popsize, pf.delta, pf.h))
-            scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%g' % (
-                pf.print_information(silent=True), pf.delta, pf.eta))
+            scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%s' % (
+                pf.print_information(silent=True), pf.delta, str(eta_disp)))
             plt.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
 
             # plt.figure(2)
@@ -48,23 +50,27 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
 
         else:
             plt.figure(1)
-            scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%g' % (pf.print_information(silent=True), pf.delta, pf.eta))
+            scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%s' % (
+            pf.print_information(silent=True), pf.delta, str(eta_disp)))
             plt.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
             plt.figure(2)
             is_plot = plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
             plt.gca().legend(loc='best', shadow=True, fontsize='small', frameon=None,
-                         fancybox=True)
-
-
-
+                             fancybox=True)
 
     # JOB: Main Loop
     for iteration in range(pf.nruns):
         begin_run = time.time()
-        if opt_type == 'robust':
-            obj_val = np.array([Fc.obj_eff(pf, pf.pwm[:, i], pf.delta, pf.h) for i in range(pf.popsize)])
+        if iteration == 0:
+            if opt_type == 'robust':
+                obj_val = np.array([Fc.obj_eff(pf, pf.pwm[:, i], pf.delta, pf.h) for i in range(pf.popsize)])
+            else:
+                obj_val = np.array([Fc.obj_value(pf, pf.pwm[:, i]) for i in range(pf.popsize)])
         else:
-            obj_val = np.array([Fc.obj_value(pf, pf.pwm[:, i]) for i in range(pf.popsize)])
+            if opt_type == 'robust':
+                obj_val = objs
+            else:
+                obj_val = objs
 
         # JOB: Select mating pool from population
         if iteration == 0:
@@ -101,8 +107,16 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
                 offspring.shape[1])])), axis=0)
 
         # JOB: Update population based on rank and crowding distance
-        new_pop = combined_pool[:, select_by_rank_and_distance(pf.popsize, obj_val)]
+        new_gen_ind = select_by_rank_and_distance(pf.popsize, obj_val)
+        new_pop = combined_pool[:, new_gen_ind]
         pf.pwm = new_pop
+
+        feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
+        feasibility_ratio = np.sum(feasible) / float(len(feasible))
+        avg_constr_viol = np.mean(constr_viol)
+        print('\nFeasibility Ratio: %g' % feasibility_ratio)
+        print('\n')
+        print('Average Constraint Violation: %g' % avg_constr_viol)
 
         # JOB: Time Run and Print Progress
         end_run = time.time()
@@ -110,35 +124,38 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
         print_progress(iteration + 1, pf.nruns, prog='Iter. avg: %g' % round(diff, 2), time_lapsed=end_run - begin_sim)
 
         # JOB: Calculate objective values and plot
-        if real_time:
-            if opt_type == 'robust':
-                objs = np.array([Fc.obj_eff(pf, new_pop[:, i], pf.delta, pf.h) for i in range(new_pop.shape[1])])
-            else:
-                objs = np.array([Fc.obj_value(pf, new_pop[:, i]) for i in range(new_pop.shape[1])])
+        if opt_type == 'robust':
+            # objs = np.array([Fc.obj_eff(pf, new_pop[:, i], pf.delta, pf.h) for i in range(new_pop.shape[1])])
+            objs = obj_val[new_gen_ind, :]
+        else:
+            # objs = np.array([Fc.obj_value(pf, new_pop[:, i]) for i in range(new_pop.shape[1])])
+            objs = obj_val[new_gen_ind, :]
 
+        if real_time:
             scatter.set_xdata(objs[:, 0])
             scatter.set_ydata(objs[:, 1])
             is_plot._offsets3d = (pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :])
 
             plt.draw()
-            plt.pause(1e-25)
-            # time.sleep(1e-25)
+            plt.pause(1e-30)
+            # time.sleep(0.5)
+
 
     end_sim = time.time()
     if real_time:
         scatter.set_xdata([])
         scatter.set_ydata([])
         scatter.remove()
-        is_plot._offsets3d = ([], [], [])
-        is_plot.remove()
+        # is_plot._offsets3d = ([], [], [])
+        # is_plot.remove()
 
     print('Simulation time: %g seconds' % (end_sim - begin_sim))
     print('\n')
     # Calculate objective values
-    if opt_type == 'robust':
-        objs = np.array([Fc.obj_eff(pf, new_pop[:, i], pf.delta, pf.h) for i in range(new_pop.shape[1])])
-    else:
-        objs = np.array([Fc.obj_value(pf, new_pop[:, i]) for i in range(new_pop.shape[1])])
+    # if opt_type == 'robust':
+    #     objs = np.array([Fc.obj_eff(pf, new_pop[:, i], pf.delta, pf.h) for i in range(new_pop.shape[1])])
+    # else:
+    #     objs = np.array([Fc.obj_value(pf, new_pop[:, i]) for i in range(new_pop.shape[1])])
 
     pf.portfolio_obj = objs  # Set problem objectives to calculated objectives
     pareto_solutions = pf.portfolio_obj[Fc.pareto_set(pf, pf.popsize)]  # Filter out pareto-sominant set

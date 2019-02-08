@@ -269,12 +269,13 @@ def pareto_set(pf, n):
     return pareto_solutions
 
 
-def is_feasible(pf, parents, verbose):
+def is_feasible(pf, parents, verbose, obj_val):
     feasible = np.empty(len(parents), dtype=bool)
-    constr_v = np.empty(len(parents))
+    constr_v = np.zeros(len(parents))
     for i, p in enumerate(parents):
         obj_effective = np.array(obj_eff(pf, pf.pwm[:, p], pf.delta, pf.h))
-        obj_val = np.array(obj_value(pf, pf.pwm[:, p]))
+        if obj_val is None:
+            obj_val = np.array(obj_value(pf, pf.pwm[:, p]))
         diff = obj_effective - obj_val
         # Calculate test value
         test_value = float(norm(diff)) / norm(obj_val)

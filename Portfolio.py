@@ -98,32 +98,33 @@ class Portfolio:
         initial_population = np.transpose(random_set / row_sum[:, None])  # Standardize initial solution population
 
         # JOB: In case of robustness of type II, ensure initial population's feasibility
-        if opt_type == 'robust_2':
-            obj_effective = np.array(
-                [Functions.obj_eff(self, initial_population[:, i], self.delta, self.h) for i in range(self.popsize)])
-            obj_val = np.array([Fc.obj_value(self, initial_population[:, i]) for i in range(self.popsize)])
-            diff = obj_effective - obj_val
-
-            test_values = np.array([float(norm(diff[i, :])) / float(norm(obj_val[i, :])) for i in range(self.popsize)])
-
-            for i in range(self.popsize):
-                while test_values[i] > self.eta:
-                    if verbose:
-                        print('Violation in Initial Solution %d \n' % i)
-                        # print('Test old: %g' % test_values[i])
-                    initial_population[:, i] = lhs(3, 1)
-                    col_sum = sum(initial_population[:, i])
-                    initial_population[:, i] = initial_population[:,
-                                               i] / col_sum  # Replacement with standardized solution
-                    diff_new = np.array(
-                        Functions.obj_eff(self, initial_population[:, i], self.delta, self.h)) - np.array(
-                        Fc.obj_value(self, initial_population[:, i]))
-                    test_values[i] = norm(diff_new) / norm(Fc.obj_value(self, initial_population[:, i]))
-                    if verbose:
-                        # print('Test new: %g  \n' % test_values[i])
-                        # print(initial_population[:, i])
-                        # print('\n')
-                        pass
+        # TODO: UNCOMMENT
+        # if opt_type == 'robust_2':
+        #     obj_effective = np.array(
+        #         [Functions.obj_eff(self, initial_population[:, i], self.delta, self.h) for i in range(self.popsize)])
+        #     obj_val = np.array([Fc.obj_value(self, initial_population[:, i]) for i in range(self.popsize)])
+        #     diff = obj_effective - obj_val
+        #
+        #     test_values = np.array([float(norm(diff[i, :])) / float(norm(obj_val[i, :])) for i in range(self.popsize)])
+        #
+        #     for i in range(self.popsize):
+        #         while test_values[i] > self.eta:
+        #             if verbose:
+        #                 print('Violation in Initial Solution %d \n' % i)
+        #                 # print('Test old: %g' % test_values[i])
+        #             initial_population[:, i] = lhs(3, 1)
+        #             col_sum = sum(initial_population[:, i])
+        #             initial_population[:, i] = initial_population[:,
+        #                                        i] / col_sum  # Replacement with standardized solution
+        #             diff_new = np.array(
+        #                 Functions.obj_eff(self, initial_population[:, i], self.delta, self.h)) - np.array(
+        #                 Fc.obj_value(self, initial_population[:, i]))
+        #             test_values[i] = norm(diff_new) / norm(Fc.obj_value(self, initial_population[:, i]))
+        #             if verbose:
+        #                 # print('Test new: %g  \n' % test_values[i])
+        #                 # print(initial_population[:, i])
+        #                 # print('\n')
+        #                 pass
 
         return initial_population
 
@@ -135,15 +136,15 @@ class Portfolio:
         """
         parent_gen = np.empty(n_parents)
         random_samples = np.random.choice(range(self.popsize), size=(n_parents, 2), replace=True)
+        feasible = np.array([True] * 2)
+        constr_v = np.zeros(2)
 
         if pcrit is not None:  # Standard GA
             for i in range(n_parents):
                 p_1 = random_samples[i, 0]
                 p_2 = random_samples[i, 1]
-                feasible = np.array([True] * 2)
-                constr_v = np.zeros(2)
                 if opt_type == 'robust_2':
-                    feasible, constr_v = Fc.is_feasible(self, [p_1, p_2], verbose=verbose)
+                    feasible, constr_v = Fc.is_feasible(self, [p_1, p_2], verbose=verbose, obj_val=obj_vals)
                 parent_gen[i] = p_1 if (feasible[0] and not feasible[1]) else \
                     p_2 if (feasible[1] and not feasible[0]) else \
                         p_1 if ((not feasible[0]) and (not feasible[1]) and constr_v[0] < constr_v[1]) else \
@@ -156,7 +157,8 @@ class Portfolio:
             for i in range(n_parents):
                 p_1 = random_samples[i, 0]
                 p_2 = random_samples[i, 1]
-                feasible, constr_v = Fc.is_feasible(self, [p_1, p_2], verbose=verbose)
+                if opt_type == 'robust_2':
+                    feasible, constr_v = Fc.is_feasible(self, [p_1, p_2], verbose=verbose, obj_val=obj_vals)
                 if crowded:  # In all but first round: crowded tournament selection
                     cd = Fc.crowding_distance([p_1, p_2], obj_vals)
                     parent_gen[i] = p_1 if (feasible[0] and not feasible[1]) else \
@@ -189,14 +191,18 @@ class Portfolio:
                 'Genetic Algorithm' if self.solver == 'genetic' else \
                     'NSGA-II' if self.solver == 'nsga_2' else None
 
+        eta = self.eta if self.opt_type is 'robust_2' else 'N/A'
+        h = self.h if (self.opt_type is 'robust' or 'robust_2') else 'N/A'
+        betas = self.nwsum if not(self.opt_type is ('robust' or 'robust_2')) else 'N/A'
+
         if not silent:
             print('\nExecution of %s under %s'
-                  '\nBetas = %d'
-                  '\nRuns/Beta = %d'
+                  '\nBetas = %s'
+                  '\nRuns = %d'
                   '\nPopulation Size = %d'
                   '\nDelta = %g'
-                  '\nH = %d'
-                  '\nEta = %g' % (
-                      algorithm, robustness, self.nwsum, self.nruns, self.popsize, self.delta, self.h, self.eta))
+                  '\nH = %s'
+                  '\nEta = %s' % (
+                      algorithm, robustness, str(betas), self.nruns, self.popsize, self.delta, str(h), str(eta)))
         else:
             return robustness
