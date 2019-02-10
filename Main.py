@@ -53,18 +53,18 @@ if __name__ == '__main__':
     # ax.plot(z1, z2, '.', label='Random Search: Non-Robust')
     # data['rs_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=200)
+    z1, z2, pf = solve_analytical(opt_type='non_robust', nwsum=400)
     ax.plot(z1, z2, '-', label='Analytical: Non-Robust')
     data['an_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
-    # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=100, crosstype='alpha', real_time=True)
+    # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=300, n_runs=100, crosstype='alpha', real_time=True)
     # ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
     # data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
-    #
-    # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=150, n_runs=50, crosstype='simulated_binary', real_time=True,
-    #                                               eta=np.inf)
-    # ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
-    # data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
+
+    z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=150, n_runs=50, crosstype='simulated_binary', real_time=True,
+                                                  eta=np.inf)
+    ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
+    data['nsga_II_%s_%g' % ('non_robust', 0)] = pf.pwm.transpose()
 
     print('Finished Non-Robust Optimization Runs')
 
@@ -113,13 +113,14 @@ if __name__ == '__main__':
         # ax.plot(z1, z2, '.', label='Random Search: Robust Type II')
         # data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
 
-        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=250, n_runs=20, eta=eta, h=h, opt_type='robust_2',
+        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=500, n_runs=200, eta=eta, h=h, opt_type='robust_2',
                                                       crosstype='simulated_binary',
-                                                      real_time=False, verbose=False, delta=0.35)
+                                                      real_time=True, verbose=True, delta=0.35)
         # comb = np.array([z1, z2])
         # print(comb)
         # print(comb.shape)
         # s1, s2 = np.sort(comb, axis=0)[:, 0], np.sort(comb, axis=0)[:, 1]
+
         plt.figure(1)
         ax.plot(z1, z2, '.', label='NSGA-II: Robust Type II, Delta=%g, Eta=%g' % (pf.delta, eta))
         data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
@@ -151,14 +152,15 @@ if __name__ == '__main__':
     # ---- Style and save plot
     plt.xlabel('Expected Return')
     plt.ylabel('Expected Risk')
-    plt.title('Pareto Front wrt. weighted sum for %g beta values, \n'
-              'Runs per beta: %d, population size: %d, \n'
+    plt.title('Pareto Front of Portfolio Optimization Problem, \n'
+              'Number of Iterations: %d, \n'
+              'Population Size: %d, \n'
               'Delta: %g, h: %d, \n'
               'Last Simulation Time (sec): %g'
-              % (pf.nwsum, pf.nruns, pf.popsize, pf.delta, pf.h, round(end_sim - begin_sim, 2)))
+              % (pf.nruns, pf.popsize, pf.delta, pf.h, round(end_sim - begin_sim, 2)))
     # legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), shadow=True, fontsize='small', frameon=None,
     #                    fancybox=True)
-    legend = ax.legend(loc='best', shadow=True, fontsize='small', frameon=None,
+    legend = ax.legend(loc='best', shadow=True, fontsize='medium', frameon=None,
                        fancybox=True)
 
     plt.show()

@@ -98,33 +98,32 @@ class Portfolio:
         initial_population = np.transpose(random_set / row_sum[:, None])  # Standardize initial solution population
 
         # JOB: In case of robustness of type II, ensure initial population's feasibility
-        # TODO: UNCOMMENT
-        # if opt_type == 'robust_2':
-        #     obj_effective = np.array(
-        #         [Functions.obj_eff(self, initial_population[:, i], self.delta, self.h) for i in range(self.popsize)])
-        #     obj_val = np.array([Fc.obj_value(self, initial_population[:, i]) for i in range(self.popsize)])
-        #     diff = obj_effective - obj_val
-        #
-        #     test_values = np.array([float(norm(diff[i, :])) / float(norm(obj_val[i, :])) for i in range(self.popsize)])
-        #
-        #     for i in range(self.popsize):
-        #         while test_values[i] > self.eta:
-        #             if verbose:
-        #                 print('Violation in Initial Solution %d \n' % i)
-        #                 # print('Test old: %g' % test_values[i])
-        #             initial_population[:, i] = lhs(3, 1)
-        #             col_sum = sum(initial_population[:, i])
-        #             initial_population[:, i] = initial_population[:,
-        #                                        i] / col_sum  # Replacement with standardized solution
-        #             diff_new = np.array(
-        #                 Functions.obj_eff(self, initial_population[:, i], self.delta, self.h)) - np.array(
-        #                 Fc.obj_value(self, initial_population[:, i]))
-        #             test_values[i] = norm(diff_new) / norm(Fc.obj_value(self, initial_population[:, i]))
-        #             if verbose:
-        #                 # print('Test new: %g  \n' % test_values[i])
-        #                 # print(initial_population[:, i])
-        #                 # print('\n')
-        #                 pass
+        if opt_type == 'robust_2':
+            obj_effective = np.array(
+                [Functions.obj_eff(self, initial_population[:, i], self.delta, self.h) for i in range(self.popsize)])
+            obj_val = np.array([Fc.obj_value(self, initial_population[:, i]) for i in range(self.popsize)])
+            diff = obj_effective - obj_val
+
+            test_values = np.array([float(norm(diff[i, :])) / float(norm(obj_val[i, :])) for i in range(self.popsize)])
+
+            for i in range(self.popsize):
+                while test_values[i] > self.eta:
+                    if verbose:
+                        print('Violation in Initial Solution %d \n' % i)
+                        # print('Test old: %g' % test_values[i])
+                    initial_population[:, i] = lhs(3, 1)
+                    col_sum = sum(initial_population[:, i])
+                    initial_population[:, i] = initial_population[:,
+                                               i] / col_sum  # Replacement with standardized solution
+                    diff_new = np.array(
+                        Functions.obj_eff(self, initial_population[:, i], self.delta, self.h)) - np.array(
+                        Fc.obj_value(self, initial_population[:, i]))
+                    test_values[i] = norm(diff_new) / norm(Fc.obj_value(self, initial_population[:, i]))
+                    if verbose:
+                        # print('Test new: %g  \n' % test_values[i])
+                        # print(initial_population[:, i])
+                        # print('\n')
+                        pass
 
         return initial_population
 

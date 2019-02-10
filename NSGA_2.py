@@ -32,7 +32,7 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
                       % (pf.nruns, pf.popsize, pf.delta, pf.h))
             scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%s' % (
                 pf.print_information(silent=True), pf.delta, str(eta_disp)))
-            plt.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
+            plt.legend(loc='best', shadow=True, fontsize='medium', frameon=None, fancybox=True)
 
             # plt.figure(2)
             is_figure = plt.figure()
@@ -44,18 +44,18 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
             is_ax.set_ylim(0, 1)
             is_ax.set_zlim(0, 1)
             is_plot = is_ax.scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
-            is_ax.legend(loc='best', shadow=True, fontsize='small', frameon=None,
+            is_ax.legend(loc='best', shadow=True, fontsize='medium', frameon=None,
                          fancybox=True)
             is_figure.show()
 
         else:
             plt.figure(1)
             scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%s' % (
-            pf.print_information(silent=True), pf.delta, str(eta_disp)))
-            plt.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
+                pf.print_information(silent=True), pf.delta, str(eta_disp)))
+            plt.legend(loc='best', shadow=True, fontsize='medium', frameon=None, fancybox=True)
             plt.figure(2)
             is_plot = plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
-            plt.gca().legend(loc='best', shadow=True, fontsize='small', frameon=None,
+            plt.gca().legend(loc='best', shadow=True, fontsize='medium', frameon=None,
                              fancybox=True)
 
     # JOB: Main Loop
@@ -111,12 +111,13 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
         new_pop = combined_pool[:, new_gen_ind]
         pf.pwm = new_pop
 
-        feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
-        feasibility_ratio = np.sum(feasible) / float(len(feasible))
-        avg_constr_viol = np.mean(constr_viol)
-        print('\nFeasibility Ratio: %g' % feasibility_ratio)
-        print('\n')
-        print('Average Constraint Violation: %g' % avg_constr_viol)
+        if opt_type == 'robust_2' and verbose == True:
+            feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
+            feasibility_ratio = np.sum(feasible) / float(len(feasible))
+            avg_constr_viol = np.mean(constr_viol)
+            print('\nFeasibility Ratio: %g' % feasibility_ratio)
+            # print('\n')
+            print('Average Constraint Violation: %g' % avg_constr_viol)
 
         # JOB: Time Run and Print Progress
         end_run = time.time()
@@ -140,14 +141,13 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
             plt.pause(1e-30)
             # time.sleep(0.5)
 
-
     end_sim = time.time()
     if real_time:
         scatter.set_xdata([])
         scatter.set_ydata([])
         scatter.remove()
-        # is_plot._offsets3d = ([], [], [])
-        # is_plot.remove()
+        is_plot._offsets3d = ([], [], [])
+        is_plot.remove()
 
     print('Simulation time: %g seconds' % (end_sim - begin_sim))
     print('\n')

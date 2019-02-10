@@ -9,7 +9,6 @@ from gurobipy import *
 from pyDOE import *
 
 
-
 def solve_analytical(delta=0.2, h=100, eta=1.285, nwsum=None, opt_type='non_robust'):
     """
     Solves Portfolio optimization analytically both robust and non-robust
@@ -37,30 +36,33 @@ def solve_analytical(delta=0.2, h=100, eta=1.285, nwsum=None, opt_type='non_robu
 
         # Populate objective
         obj = QuadExpr()
-        for i in range(pf.dim_dec):
-            temp = 0
-            for j in range(pf.dim_dec):
-                temp = temp + pf.sigma[i, j] * x[j]
-            obj += pf.mu[i] * x[i] - pf.betas[iteration] * 0.5 * x[i] * temp
 
-        # Generate random Latin hypercube sampling
-        lhc_sample = (lhs(3, h) - 0.5) * 2.0 * delta
-
-        # Populate robust objective
-        obj_robust = QuadExpr()
-        for k in range(h):
+        if opt_type == 'non_robust':
             for i in range(pf.dim_dec):
                 temp = 0
                 for j in range(pf.dim_dec):
-                    temp = temp + pf.sigma[i, j] * (x[j] + lhc_sample[k, j])
-                obj_robust += (1.0 / h) * (pf.mu[i] * (x[i] + lhc_sample[k, i]) - pf.betas[iteration] * 0.5 * (
-                        x[i] + lhc_sample[k, i]) * temp)
+                    temp = temp + pf.sigma[i, j] * x[j]
+                obj += pf.mu[i] * x[i] - pf.betas[iteration] * 0.5 * x[i] * temp
 
-        # Set objective depending on opt_type
-        if opt_type == 'non_robust':
+            # Set objective
             m.setObjective(obj, GRB.MAXIMIZE)
-        else:
-            m.setObjective(obj_robust, GRB.MAXIMIZE)
+
+        if opt_type == 'robust':
+            # Generate random Latin hypercube sampling
+            lhc_sample = (lhs(3, h) - 0.5) * 2.0 * delta
+
+            # Populate effective objective function
+            obj = QuadExpr()
+            for k in range(h):
+                for i in range(pf.dim_dec):
+                    temp = 0
+                    for j in range(pf.dim_dec):
+                        temp = temp + pf.sigma[i, j] * (x[j] + lhc_sample[k, j])
+                    obj += (1.0 / h) * (pf.mu[i] * (x[i] + lhc_sample[k, i]) - pf.betas[iteration] * 0.5 * (
+                            x[i] + lhc_sample[k, i]) * temp)
+
+            # Set objective
+            m.setObjective(obj, GRB.MAXIMIZE)
 
         # Set constraint
         m.addConstr(quicksum(x[i] for i in range(pf.dim_dec)) == 1, 'Wholeness_Constraint')
@@ -87,7 +89,8 @@ def solve_analytical(delta=0.2, h=100, eta=1.285, nwsum=None, opt_type='non_robu
         pf.portfolio_obj[iteration] = [f1, f2]  # Save individual objective values in Problem Instance
         end_run = time.time()
         diff = end_run - begin_run
-        Fc.print_progress(iteration + 1, pf.nwsum, prog='Iter. avg: %g' % round(diff, 2), time_lapsed=end_run - begin_sim)
+        Fc.print_progress(iteration + 1, pf.nwsum, prog='Iter. avg: %g' % round(diff, 2),
+                          time_lapsed=end_run - begin_sim)
     end_sim = time.time()
     print('Simulation time: %g seconds' % (end_sim - begin_sim))
 
@@ -110,7 +113,7 @@ def solve_random_search(opt_type='non_robust', delta=0.2, h=100, eta=1.285):
     :return: z1, z2, pf, begin_sim, end_sim
     """
     pf = Pf.Portfolio(eta=eta, delta=delta, h=h, solver='random_search', opt_type=opt_type,
-                   verbose=False)  # Create simulation instance
+                      verbose=False)  # Create simulation instance
 
     robustness = 'Non-Robustness' if opt_type == 'non_robust' else \
         'Robustness Type I' if opt_type == 'robust' else \
@@ -213,7 +216,7 @@ def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressu
     :return: z1, z2, pf, begin_sim, end_sim
     """
     pf = Pf.Portfolio(eta=eta, delta=delta, h=h, solver='genetic', opt_type=opt_type,
-                   verbose=verbose)  # Create simulation instance
+                      verbose=verbose)  # Create simulation instance
 
     pf.print_information()
 

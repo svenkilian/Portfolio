@@ -283,7 +283,7 @@ def is_feasible(pf, parents, verbose, obj_val):
         if test_value > pf.eta or any(pf.pwm[:, p] < 0):
             feasible[i] = False
             constr_v[i] = test_value - pf.eta
-            if verbose:
+            if False:  # TODO: REVERSE
                 print('Individual %d is not feasible.  \n' % p)
                 if test_value > pf.eta:
                     print('Threshold violation.')
