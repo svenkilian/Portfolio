@@ -106,24 +106,24 @@ class Portfolio:
 
             test_values = np.array([float(norm(diff[i, :])) / float(norm(obj_val[i, :])) for i in range(self.popsize)])
 
-            for i in range(self.popsize):
-                while test_values[i] > self.eta:
-                    if verbose:
-                        print('Violation in Initial Solution %d \n' % i)
-                        # print('Test old: %g' % test_values[i])
-                    initial_population[:, i] = lhs(3, 1)
-                    col_sum = sum(initial_population[:, i])
-                    initial_population[:, i] = initial_population[:,
-                                               i] / col_sum  # Replacement with standardized solution
-                    diff_new = np.array(
-                        Functions.obj_eff(self, initial_population[:, i], self.delta, self.h)) - np.array(
-                        Fc.obj_value(self, initial_population[:, i]))
-                    test_values[i] = norm(diff_new) / norm(Fc.obj_value(self, initial_population[:, i]))
-                    if verbose:
-                        # print('Test new: %g  \n' % test_values[i])
-                        # print(initial_population[:, i])
-                        # print('\n')
-                        pass
+            # for i in range(self.popsize): TODO: UNCOMMENT
+            #     while test_values[i] > self.eta:
+            #         if verbose:
+            #             print('Violation in Initial Solution %d \n' % i)
+            #             # print('Test old: %g' % test_values[i])
+            #         initial_population[:, i] = lhs(3, 1)
+            #         col_sum = sum(initial_population[:, i])
+            #         initial_population[:, i] = initial_population[:,
+            #                                    i] / col_sum  # Replacement with standardized solution
+            #         diff_new = np.array(
+            #             Functions.obj_eff(self, initial_population[:, i], self.delta, self.h)) - np.array(
+            #             Fc.obj_value(self, initial_population[:, i]))
+            #         test_values[i] = norm(diff_new) / norm(Fc.obj_value(self, initial_population[:, i]))
+            #         if verbose:
+            #             # print('Test new: %g  \n' % test_values[i])
+            #             # print(initial_population[:, i])
+            #             # print('\n')
+            #             pass
 
         return initial_population
 

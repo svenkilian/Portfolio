@@ -133,9 +133,17 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
             objs = obj_val[new_gen_ind, :]
 
         if real_time:
-            scatter.set_xdata(objs[:, 0])
-            scatter.set_ydata(objs[:, 1])
-            is_plot._offsets3d = (pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :])
+            # JOB: Under robustness type 2, only display the feasible solutions
+            if opt_type == 'robust_2':
+                feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
+                objs_f = objs[np.where(feasible)]
+                scatter.set_xdata(objs_f[:, 0])
+                scatter.set_ydata(objs_f[:, 1])
+                is_plot._offsets3d = (pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :])
+            else:
+                scatter.set_xdata(objs[:, 0])
+                scatter.set_ydata(objs[:, 1])
+                is_plot._offsets3d = (pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :])
 
             plt.draw()
             plt.pause(1e-30)
@@ -151,20 +159,22 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
 
     print('Simulation time: %g seconds' % (end_sim - begin_sim))
     print('\n')
-    # Calculate objective values
-    # if opt_type == 'robust':
-    #     objs = np.array([Fc.obj_eff(pf, new_pop[:, i], pf.delta, pf.h) for i in range(new_pop.shape[1])])
-    # else:
-    #     objs = np.array([Fc.obj_value(pf, new_pop[:, i]) for i in range(new_pop.shape[1])])
 
-    pf.portfolio_obj = objs  # Set problem objectives to calculated objectives
-    pareto_solutions = pf.portfolio_obj[Fc.pareto_set(pf, pf.popsize)]  # Filter out pareto-sominant set
-    z1 = pareto_solutions[:, 0]  # List for plotting returns
-    z2 = pareto_solutions[:, 1]  # List for plotting risk
+    if opt_type == 'robust_2':
+        feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
+        objs_f = objs[np.where(feasible), :]
+        pf.pwm = pf.pwm[:, np.where(feasible)]
+        pf.portfolio_obj = objs_f
+        print(len(pf.portfolio_obj))
+        pareto_solutions = objs_f
+        # pareto_solutions = pf.portfolio_obj[Fc.pareto_set(pf, len(pf.portfolio_obj))]  # Filter out pareto-dominant set
+        z1 = pareto_solutions[:, 0]  # List for plotting returns
+        z2 = pareto_solutions[:, 1]  # List for plotting risk
 
-    # print(pareto_set(pf))
-    # p1 = z1[pareto_set(pf)]
-    # p2 = z2[pareto_set(pf)]
+    else:
+        pf.portfolio_obj = objs  # Set problem objectives to calculated objectives
+        pareto_solutions = pf.portfolio_obj[Fc.pareto_set(pf, pf.popsize)]  # Filter out pareto-dominant set
+        z1 = pareto_solutions[:, 0]  # List for plotting returns
+        z2 = pareto_solutions[:, 1]  # List for plotting risk
 
-    # return p1, p2, pf, begin_sim, end_sim
     return z1, z2, pf, begin_sim, end_sim
