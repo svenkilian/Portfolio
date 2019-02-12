@@ -13,7 +13,7 @@ from pyDOE import *
 if __name__ == '__main__':
     end_sim, begin_sim = 0, 0
     # JOB: Set Metaparameters
-    h = 100
+    h = 20
     delta = 0.4
 
     # JOB: Create Optimization Problem Instance
@@ -70,8 +70,8 @@ if __name__ == '__main__':
 
     # ---- Run Robust Optimization of Type I ----
     opt_type = 'robust'
-    delta = np.linspace(0.1, 0.4, 4)
-    for d in delta:
+    delta_l = np.linspace(0.1, 0.4, 4)
+    for d in delta_l:
         # z1, z2, pf, begin_sim, end_sim = solve_GA('robust', h=h, delta=d)
         # ax.plot(z1, z2, '.', label='GA: Robust, Delta=%g' % d)
         # data['ga_%s_%g' % (opt_type, d)] = pf.portfolio_dec
@@ -98,24 +98,23 @@ if __name__ == '__main__':
 
     # ---- Run Robust Optimization of Type II ----
     opt_type = 'robust_2'
-    eta_s = np.linspace(0.3, 0.1, 4)
+    eta_s = np.linspace(0.25, 0.1, 4)
 
     for eta in eta_s:
-        # z1, z2, pf, begin_sim, end_sim = solve_GA('robust_2', h=h, delta=delta, eta=eta, verbose=False)
-        #     ax.plot(z1, z2, '.', label='GA: Robust Type II, Eta=%g' % eta)
-        #     data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
+        plt.figure(1)
+        z1, z2, pf, begin_sim, end_sim = solve_GA('robust_2', h=h, delta=delta, eta=eta, verbose=False)
+        ax.plot(z1, z2, '.', label='GA: Robust Type II, Eta=%g' % eta)
+        data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
 
         # z1, z2, pf, begin_sim, end_sim = solve_random_search('robust_2', h=h, delta=delta, eta=eta)
         # ax.plot(z1, z2, '.', label='Random Search: Robust Type II')
         # data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
 
-        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=20, eta=eta, h=h, opt_type='robust_2',
-                                                      crosstype='simulated_binary',
-                                                      real_time=True, verbose=True, delta=0.35)
-
-        plt.figure(1)
-        ax.plot(z1, z2, '.', label='NSGA-II: Robust Type II, Delta=%g, Eta=%g' % (pf.delta, eta))
-        data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
+        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=20, eta=eta, h=h, opt_type='robust_2',
+        #                                               crosstype='simulated_binary',
+        #                                               real_time=True, verbose=True, delta=0.35)
+        # ax.plot(z1, z2, '.', label='NSGA-II: Robust Type II, Delta=%g, Eta=%g' % (pf.delta, eta))
+        # data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
 
         # feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
         # feasibility_ratio = np.sum(feasible) / float(len(feasible))

@@ -17,7 +17,7 @@ from pyDOE import *
 
 
 class Portfolio:
-    def __init__(self, n_runs=100, popsize=12, nwsum=200, eta=None, delta=None, h=None, solver=None,
+    def __init__(self, n_runs=20, popsize=12, nwsum=200, eta=None, delta=None, h=None, solver=None,
                  opt_type='non_robust', verbose=False):
         """Constructor for Portfolio Optimization Problem instance containing problem problem parameters and
         storing results"""
