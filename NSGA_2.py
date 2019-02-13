@@ -34,7 +34,6 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
                 pf.print_information(silent=True), pf.delta, str(eta_disp)))
             plt.legend(loc='best', shadow=True, fontsize='medium', frameon=None, fancybox=True)
 
-            # plt.figure(2)
             is_figure = plt.figure()
             is_ax = is_figure.add_subplot(111, projection='3d')
             is_ax.set_xlabel('x_1')
@@ -43,9 +42,16 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
             is_ax.set_xlim(0, 1)
             is_ax.set_ylim(0, 1)
             is_ax.set_zlim(0, 1)
-            is_plot = is_ax.scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
+            is_plot = is_ax.scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :],
+                                    label='NSGA-II, Delta = %s, Eta = %s' % (
+                                        str(round(pf.delta, 2)), str(round(pf.eta, 2))))
             is_ax.legend(loc='best', shadow=True, fontsize='medium', frameon=None,
                          fancybox=True)
+            plt.title('Input Space of Portfolio Optimization Problem, \n'
+                      'Runs = %d, \n'
+                      'Population Size = %d, \n'
+                      'Delta = %g, H = %d'
+                      % (pf.nruns, pf.popsize, pf.delta, pf.h))
             is_figure.show()
 
         else:
@@ -54,7 +60,9 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
                 pf.print_information(silent=True), pf.delta, str(eta_disp)))
             plt.legend(loc='best', shadow=True, fontsize='medium', frameon=None, fancybox=True)
             plt.figure(2)
-            is_plot = plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='Input Variables')
+            is_plot = plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :],
+                                        label='NSGA-II, Delta = %s, Eta = %s' % (
+                                        str(round(pf.delta, 2)), str(round(pf.eta, 2))))
             plt.gca().legend(loc='best', shadow=True, fontsize='medium', frameon=None,
                              fancybox=True)
 
@@ -165,9 +173,9 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
         objs_f = objs[np.where(feasible)]
         pf.pwm = np.reshape(pf.pwm[:, np.where(feasible)], (pf.dim_dec, objs_f.shape[0]))
         pf.portfolio_obj = objs_f
-        print(len(pf.portfolio_obj))
-        pareto_solutions = objs_f
-        pareto_solutions = pf.portfolio_obj[Fc.pareto_set(pf, pf.portfolio_obj.shape[0])]  # Filter out pareto-dominant set
+        # pareto_solutions = objs_f
+        pareto_solutions = pf.portfolio_obj[
+            Fc.pareto_set(pf, pf.portfolio_obj.shape[0])]  # Filter out pareto-dominant set
         z1 = pareto_solutions[:, 0]  # List for plotting returns
         z2 = pareto_solutions[:, 1]  # List for plotting risk
 

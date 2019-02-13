@@ -9,7 +9,7 @@ from gurobipy import *
 from pyDOE import *
 
 
-def solve_numerical(delta=0.2, h=100, eta=1.285, nwsum=None, opt_type='non_robust'):
+def solve_numerical(delta=0.2, h=200, eta=1.285, nwsum=None, opt_type='non_robust'):
     """
     Solves Portfolio optimization analytically both robust and non-robust
     :param eta:
