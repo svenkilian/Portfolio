@@ -13,7 +13,7 @@ from pyDOE import *
 if __name__ == '__main__':
     end_sim, begin_sim = 0, 0
     # JOB: Set Metaparameters
-    h = 20
+    h = 100
     delta = 0.4
 
     # JOB: Create Optimization Problem Instance
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # JOB: Run optimization and plot results
     fig, ax = plt.subplots()
     # ---- Style plot ----
-    legend = ax.legend(loc='best', shadow=True, fontsize='small', frameon=None,
+    legend = ax.legend(loc='best', shadow=True, fontsize='medium', frameon=None,
                        fancybox=True)
     axes = plt.gca()
     axes.set_xlim(10, 15.5)
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     z1, z2, pf = solve_numerical(opt_type='non_robust', nwsum=400)
     ax.plot(z1, z2, '-', label='Numerically: Non-Robust')
-    data['an_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
+    data['num_%s_%g' % (opt_type, 0)] = pf.portfolio_dec
 
     # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=300, n_runs=100, crosstype='alpha', real_time=True)
     # ax.plot(z1, z2, '.', label='NSGA-II: Non-Robust')
@@ -70,26 +70,24 @@ if __name__ == '__main__':
 
     # ---- Run Robust Optimization of Type I ----
     opt_type = 'robust'
-    delta_l = np.linspace(0.1, 0.4, 4)
+    delta_l = np.linspace(0.2, 0.4, 4)
     for d in delta_l:
-        # z1, z2, pf, begin_sim, end_sim = solve_GA('robust', h=h, delta=d)
+        plt.figure(1)
+        # z1, z2, pf, begin_sim, end_sim = solve_GA('robust', h=h, delta=d, popsize=50, n_runs=50)
         # ax.plot(z1, z2, '.', label='GA: Robust, Delta=%g' % d)
         # data['ga_%s_%g' % (opt_type, d)] = pf.portfolio_dec
-        # print([np.sum(pf.portfolio_dec[i, :]) for i in range(pf.nwsum)])
         #
-        # z1, z2, pf, begin_sim, end_sim = solve_random_search('robust', h=h, delta=d)
+        # z1, z2, pf, begin_sim, end_sim = solve_random_search('robust', h=h, delta=d, popsize=50, n_runs=50)
         # ax.plot(z1, z2, '.', label='Random Search: Robust, Delta=%g' % d)
         # data['rs_%s_%g' % (opt_type, d)] = pf.portfolio_dec
-        # print([np.sum(pf.portfolio_dec[i, :]) for i in range(pf.nwsum)])
-        #
-        # z1, z2, pf = solve_numerical(delta=d, opt_type='robust', h=h, nwsum=200)
-        # ax.plot(z1, z2, '-', label='Numerically: Robust, Delta=%g' % d)
-        # data['an_%s_%g' % (opt_type, d)] = pf.portfolio_dec
-        # print([np.sum(pf.portfolio_dec[i, :]) for i in range(pf.nwsum)])
 
-        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=400, n_runs=50, delta=d, h=h, opt_type='robust',
+        # z1, z2, pf = solve_numerical(delta=d, opt_type='robust', h=h, nwsum=400)
+        # axes.plot(z1, z2, '.', label='Numerically: Robust, Delta=%g' % d)
+        # data['an_%s_%g' % (opt_type, d)] = pf.portfolio_dec
+
+        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=100, delta=d, h=h, opt_type='robust',
         #                                               real_time=True)
-        # plt.figure(1)
+        #
         # ax.plot(z1, z2, '.', label='NSGA-II: Robust Type I, Delta=%g' % d)
         # data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
 
@@ -98,23 +96,24 @@ if __name__ == '__main__':
 
     # ---- Run Robust Optimization of Type II ----
     opt_type = 'robust_2'
-    eta_s = np.linspace(0.25, 0.1, 4)
+    eta_s = np.linspace(0.1, 0.1, 1)
 
     for eta in eta_s:
         plt.figure(1)
-        z1, z2, pf, begin_sim, end_sim = solve_GA('robust_2', h=h, delta=delta, eta=eta, verbose=False)
-        ax.plot(z1, z2, '.', label='GA: Robust Type II, Eta=%g' % eta)
-        data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
-
+        # z1, z2, pf, begin_sim, end_sim = solve_GA(n_runs=20, opt_type='robust_2', h=h, delta=delta, eta=eta, verbose=False)
+        # ax.plot(z1, z2, '.', label='GA: Robust Type II, Eta=%g' % eta)
+        # data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
+        #
         # z1, z2, pf, begin_sim, end_sim = solve_random_search('robust_2', h=h, delta=delta, eta=eta)
         # ax.plot(z1, z2, '.', label='Random Search: Robust Type II')
         # data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
 
-        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=20, eta=eta, h=h, opt_type='robust_2',
-        #                                               crosstype='simulated_binary',
-        #                                               real_time=True, verbose=True, delta=0.35)
-        # ax.plot(z1, z2, '.', label='NSGA-II: Robust Type II, Delta=%g, Eta=%g' % (pf.delta, eta))
-        # data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
+        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=100, n_runs=50, eta=eta, h=h, opt_type='robust_2',
+                                                      crosstype='simulated_binary',
+                                                      real_time=True, verbose=True, delta=0.35)
+
+        ax.plot(z1, z2, '.', label='NSGA-II: Robust Type II, Delta=%g, Eta=%g' % (pf.delta, eta))
+        data['nsga_II_2_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
 
         # feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
         # feasibility_ratio = np.sum(feasible) / float(len(feasible))
@@ -159,5 +158,10 @@ if __name__ == '__main__':
     # fig = plt.gcf()
     fig.savefig(ROOT_DIR + '\Diagram.png', bbox_inches='tight', dpi=400, quality=95)
     fig.savefig(ROOT_DIR + '\Diagram.pdf', bbox_inches='tight', dpi=400, quality=95)
+    fig = plt.figure(2)
+    fig.savefig(ROOT_DIR + '\Diagram_Input.png', bbox_inches='tight', dpi=400, quality=95)
+    fig.savefig(ROOT_DIR + '\Diagram_Input.pdf', bbox_inches='tight', dpi=400, quality=95)
+
+
     # show(block=False)
     # plt.close('all')

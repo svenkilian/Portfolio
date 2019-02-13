@@ -162,12 +162,12 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
 
     if opt_type == 'robust_2':
         feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
-        objs_f = objs[np.where(feasible), :]
-        pf.pwm = pf.pwm[:, np.where(feasible)]
+        objs_f = objs[np.where(feasible)]
+        pf.pwm = np.reshape(pf.pwm[:, np.where(feasible)], (pf.dim_dec, objs_f.shape[0]))
         pf.portfolio_obj = objs_f
         print(len(pf.portfolio_obj))
         pareto_solutions = objs_f
-        # pareto_solutions = pf.portfolio_obj[Fc.pareto_set(pf, len(pf.portfolio_obj))]  # Filter out pareto-dominant set
+        pareto_solutions = pf.portfolio_obj[Fc.pareto_set(pf, pf.portfolio_obj.shape[0])]  # Filter out pareto-dominant set
         z1 = pareto_solutions[:, 0]  # List for plotting returns
         z2 = pareto_solutions[:, 1]  # List for plotting risk
 

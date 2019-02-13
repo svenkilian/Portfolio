@@ -193,16 +193,22 @@ def obj_value(pf, x):
     return f1, f2
 
 
-def obj_eff(pf, x, delta, h):
+def obj_eff(pf, x, delta, h, sample=None):
     """
     Calculates values of mean effective objective function for given solution x for robust optimization
+    :param sample: Sample passed from calling function
     :param pf: Problem instance
     :param x: solution
     :param delta: Neighborhood size
     :param h: Number of samples
     :return:
     """
-    lhc_sample = (lhs(3, h) - 0.5) * 2.0 * delta
+    if sample is None:
+        lhc_sample = (lhs(3, h) - 0.5) * 2.0 * delta
+    else:
+        # Use the same random sample as for numerical solution when using Gurobi solver
+        lhc_sample = sample
+
     f1 = (1.0 / h) * sum(np.matmul(np.transpose(pf.mu), y) for y in (np.add(np.transpose(x), lhc_sample)))
     f2 = (1.0 / h) * sum(
         0.5 * np.matmul(np.matmul(np.transpose(y), pf.sigma), y) for y in (np.add(np.transpose(x), lhc_sample)))
@@ -257,8 +263,7 @@ def pareto_set(pf, n):
     :return:
     """
     is_efficient = np.ones(pf.portfolio_obj.shape[0], dtype=bool)  # Initialize mask
-    obj = np.reshape(np.concatenate([pf.portfolio_obj[:, 0], - pf.portfolio_obj[:, 1]]), (n, pf.dim_obj),
-                     order='F')
+    obj = np.reshape(np.concatenate([pf.portfolio_obj[:, 0], - pf.portfolio_obj[:, 1]]), (n, pf.dim_obj), order='F')
 
     for i, c in enumerate(obj):
         if is_efficient[i]:

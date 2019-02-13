@@ -27,6 +27,7 @@ def solve_numerical(delta=0.2, h=100, eta=1.285, nwsum=None, opt_type='non_robus
     for iteration in range(pf.nwsum):
         begin_run = time.time()
         solution = np.zeros(pf.dim_dec)
+        lhc_sample = None
 
         # Create model
         m = Model()
@@ -48,7 +49,7 @@ def solve_numerical(delta=0.2, h=100, eta=1.285, nwsum=None, opt_type='non_robus
             m.setObjective(obj, GRB.MAXIMIZE)
 
         if opt_type == 'robust':
-            # Generate random Latin hypercube sampling
+            # Generate random sample through Latin hypercube sampling
             lhc_sample = (lhs(3, h) - 0.5) * 2.0 * delta
 
             # Populate effective objective function
@@ -77,13 +78,13 @@ def solve_numerical(delta=0.2, h=100, eta=1.285, nwsum=None, opt_type='non_robus
                 solution[i] = x[i].x
 
             # Save optimal value
-            pf.results_ws = m.objVal
+            pf.results_ws[iteration] = m.objVal
 
             # Calculate individual objective values
             if opt_type == 'non_robust':
                 f1, f2 = Fc.obj_value(pf, solution)
-            else:
-                f1, f2 = Fc.obj_eff(pf, solution, delta, h)
+            elif opt_type == 'robust':
+                f1, f2 = Fc.obj_eff(pf, solution, delta, h, sample=lhc_sample)
 
         pf.portfolio_dec[iteration, :] = solution
         pf.portfolio_obj[iteration] = [f1, f2]  # Save individual objective values in Problem Instance
@@ -103,16 +104,18 @@ def solve_numerical(delta=0.2, h=100, eta=1.285, nwsum=None, opt_type='non_robus
     return p1, p2, pf
 
 
-def solve_random_search(opt_type='non_robust', delta=0.2, h=100, eta=1.285):
+def solve_random_search(opt_type='non_robust', delta=0.2, h=100, eta=1.285, popsize=12, n_runs=100):
     """
     Solves optimization problem by means of a random search optimization
+    :param n_runs:
+    :param popsize:
     :param opt_type: Type of optimization
     :param delta: Neighborhood size
     :param h: Number of samples
     :param eta: Threshold for robustness type 2
     :return: z1, z2, pf, begin_sim, end_sim
     """
-    pf = Pf.Portfolio(eta=eta, delta=delta, h=h, solver='random_search', opt_type=opt_type,
+    pf = Pf.Portfolio(popsize=popsize, n_runs=n_runs, eta=eta, delta=delta, h=h, solver='random_search', opt_type=opt_type,
                       verbose=False)  # Create simulation instance
 
     robustness = 'Non-Robustness' if opt_type == 'non_robust' else \
@@ -204,9 +207,12 @@ def solve_random_search(opt_type='non_robust', delta=0.2, h=100, eta=1.285):
 
 
 def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressure=0.5, mutation_r=0.8,
-             verbose=False):
+             verbose=False, popsize=12, n_runs=100):
     """
     Solves optimization problem by means of a genetic algorithm
+    :param n_runs:
+    :param popsize:
+    :param verbose:
     :param selective_pressure: Proportion of population chosen into mating pool
     :param mutation_r: Mutation propensity
     :param opt_type: Type of optimization
@@ -215,7 +221,7 @@ def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressu
     :param eta: Threshold for robustness type 2
     :return: z1, z2, pf, begin_sim, end_sim
     """
-    pf = Pf.Portfolio(eta=eta, delta=delta, h=h, solver='genetic', opt_type=opt_type,
+    pf = Pf.Portfolio(popsize=popsize, n_runs=n_runs, eta=eta, delta=delta, h=h, solver='genetic', opt_type=opt_type,
                       verbose=verbose)  # Create simulation instance
 
     pf.print_information()
@@ -384,15 +390,6 @@ def solve_GA(opt_type='non_robust', delta=0.2, h=100, eta=0.03, selective_pressu
             wbest[:, iteration] = best  # Store best portfolio
             pcritvec[iteration] = top  # Store best objective value
 
-        # fig, ax = plt.subplots()
-        # x = range(pf.nruns)
-        #
-        # ax.plot(pcritvec, label='GA: Non-Robust')
-        # ax.plot([wbest[0, i] for i in range(wbest.shape[1])], label='x1')
-        # ax.plot([wbest[1, i] for i in range(wbest.shape[1])], label='x2')
-        # ax.plot([wbest[2, i] for i in range(wbest.shape[1])], label='x3')
-        # legend = ax.legend(loc='best', shadow=True, fontsize='small', frameon=None, fancybox=True)
-        # plt.show()
 
         # Store optimal portfolio/weights
         pf.portfolio_dec[run, :] = best
