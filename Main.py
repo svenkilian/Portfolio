@@ -13,7 +13,7 @@ from pyDOE import *
 if __name__ == '__main__':
     end_sim, begin_sim = 0, 0
     # JOB: Set Metaparameters
-    h = 200  # Specify number of sampling points within Delta neighborhood
+    h = 20  # Specify number of sampling points within Delta neighborhood
     delta = 0.4  # Specifies the size of the Delta Neighborhood
 
     # JOB: Create Optimization Problem Instance
@@ -94,19 +94,19 @@ if __name__ == '__main__':
         # data['rs_%s_%g' % (opt_type, d)] = pf.portfolio_dec
 
         # JOB: Run Numerical Solution implementation
-        z1, z2, pf = solve_numerical(delta=d, opt_type='robust', h=h, nwsum=800)
-        axes.plot(z1, z2, '.', label=r'Numerically: Robust, $\delta = %g$' % d)
-        data['an_%s_%g' % (opt_type, d)] = pf.portfolio_dec
+        # z1, z2, pf = solve_numerical(delta=d, opt_type='robust', h=h, nwsum=800)
+        # axes.plot(z1, z2, '.', label=r'Numerically: Robust, $\delta = %g$' % d)
+        # data['an_%s_%g' % (opt_type, d)] = pf.portfolio_dec
 
         # JOB: Run NSGA-II implementation
-        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=100, delta=d, h=h, opt_type='robust',
-        #                                               real_time=True)
-        #
-        # ax.plot(z1, z2, '.', label=r'NSGA-II: Robust Type I, $\delta=%g$' % d)
-        # data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
-        # plt.figure(2)
-        # plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label=r'NSGA-II, $\delta = %s$, $\eta = %s$' % (
-        #     str(round(pf.delta, 2)), str(eta_disp)))
+        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=100, delta=d, h=h, opt_type='robust',
+                                                      real_time=True)
+
+        ax.plot(z1, z2, '.', label=r'NSGA-II: Robust Type I, $\delta=%g$' % d)
+        data['nsga_II_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
+        plt.figure(2)
+        plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label=r'NSGA-II, $\delta = %s$, $\eta = %s$' % (
+            str(round(pf.delta, 2)), str(eta_disp)))
 
         print('Finished Robust Optimization runs of Type I')
         pass
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     # JOB: Run robust optimization of Type II
     opt_type = 'robust_2'
     eta_disp = pf.eta
-    eta_s = np.linspace(0.1, 0.4, 1)  # Specify array of Eta parameters
+    eta_s = np.linspace(0.1, 0.4, 4)  # Specify array of Eta parameters
 
     for eta in eta_s:
         plt.figure(1)
@@ -128,15 +128,15 @@ if __name__ == '__main__':
         # data['ga_%s_%g_%g' % (opt_type, d, eta)] = pf.portfolio_dec
 
         # JOB: Run NSGA-II implementation
-        # z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=100, eta=eta, h=h, opt_type='robust_2',
-        #                                               crosstype='simulated_binary',
-        #                                               real_time=True, verbose=True, delta=0.35)
-        #
-        # ax.plot(z1, z2, '.', label=r'NSGA-II: Robust Type II, $\delta=%g$, $\eta=%g$' % (pf.delta, eta))
-        # data['nsga_II_2_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
-        # plt.figure(2)
-        # plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='rNSGA-II, $\delta = %s$, $\eta = %s$' % (
-        #     str(round(pf.delta, 2)), str(eta_disp)))
+        z1, z2, pf, begin_sim, end_sim = solve_nsga_2(popsize=200, n_runs=100, eta=eta, h=h, opt_type='robust_2',
+                                                      crosstype='simulated_binary',
+                                                      real_time=True, verbose=True, delta=0.35)
+
+        ax.plot(z1, z2, '.', label=r'NSGA-II: Robust Type II, $\delta=%g$, $\eta=%g$' % (pf.delta, eta))
+        data['nsga_II_2_%s_%g' % (opt_type, 0)] = pf.pwm.transpose()
+        plt.figure(2)
+        plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :], label='rNSGA-II, $\delta = %s$, $\eta = %s$' % (
+            str(round(pf.delta, 2)), str(eta_disp)))
 
         # feasible, constr_viol = is_feasible(pf, range(pf.popsize), verbose=False, obj_val=None)
         # feasibility_ratio = np.sum(feasible) / float(len(feasible))
