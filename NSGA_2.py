@@ -15,7 +15,7 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
                    opt_type=opt_type,
                    verbose=verbose)  # Create simulation instance
     pf.print_information()
-    eta_disp = pf.eta if opt_type is 'robust_2' else 'N/A'
+    eta_disp = round(pf.eta, 2) if opt_type is 'robust_2' else 'N/A'
     objs = np.zeros(pf.popsize)
 
     # JOB: Main loop for NSGA-II iterations
@@ -28,41 +28,41 @@ def solve_nsga_2(opt_type='non_robust', n_runs=None, popsize=None, delta=0.2, h=
             plt.figure(1)
             plt.title('Pareto Front with NSGA-II \n'
                       'Runs = %d, Population Size = %d, \n'
-                      'Delta = %g, H = %d'
+                      r'$\delta = %g$, $H = %d$'
                       % (pf.nruns, pf.popsize, pf.delta, pf.h))
-            scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%s' % (
+            scatter, = plt.plot([], [], '.', label=r'NSGA-II: %s, $\delta=%g$, $\eta=%s$' % (
                 pf.print_information(silent=True), pf.delta, str(eta_disp)))
             plt.legend(loc='best', shadow=True, fontsize='medium', frameon=None, fancybox=True)
 
             is_figure = plt.figure()
             is_ax = is_figure.add_subplot(111, projection='3d')
-            is_ax.set_xlabel('x_1')
-            is_ax.set_ylabel('x_2')
-            is_ax.set_zlabel('x_3')
+            is_ax.set_xlabel(r'$x_1$')
+            is_ax.set_ylabel(r'$x_2$')
+            is_ax.set_zlabel(r'$x_3$')
             is_ax.set_xlim(0, 1)
             is_ax.set_ylim(0, 1)
             is_ax.set_zlim(0, 1)
             is_plot = is_ax.scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :],
-                                    label='NSGA-II, Delta = %s, Eta = %s' % (
-                                        str(round(pf.delta, 2)), str(round(pf.eta, 2))))
+                                    label=r'NSGA-II, $\delta = %s$, $\eta = %s$' % (
+                                        str(round(pf.delta, 2)), str(eta_disp)))
             is_ax.legend(loc='best', shadow=True, fontsize='medium', frameon=None,
                          fancybox=True)
             plt.title('Input Space of Portfolio Optimization Problem, \n'
                       'Runs = %d, \n'
                       'Population Size = %d, \n'
-                      'Delta = %g, H = %d'
+                      r'$\delta = %g$, $H = %d$'
                       % (pf.nruns, pf.popsize, pf.delta, pf.h))
             is_figure.show()
 
         else:
             plt.figure(1)
-            scatter, = plt.plot([], [], '.', label='NSGA-II: %s, Delta=%g, Eta=%s' % (
+            scatter, = plt.plot([], [], '.', label=r'NSGA-II: %s, $\delta=%g$, $\eta=%s$' % (
                 pf.print_information(silent=True), pf.delta, str(eta_disp)))
             plt.legend(loc='best', shadow=True, fontsize='medium', frameon=None, fancybox=True)
             plt.figure(2)
             is_plot = plt.gca().scatter(pf.pwm[0, :], pf.pwm[1, :], pf.pwm[2, :],
-                                        label='NSGA-II, Delta = %s, Eta = %s' % (
-                                        str(round(pf.delta, 2)), str(round(pf.eta, 2))))
+                                        label=r'NSGA-II, $\delta = %s$, $\eta = %s$' % (
+                                        str(round(pf.delta, 2)), str(eta_disp)))
             plt.gca().legend(loc='best', shadow=True, fontsize='medium', frameon=None,
                              fancybox=True)
 
