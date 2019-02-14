@@ -23,7 +23,7 @@ The execution requires a running Gurobi installation.
 
 
 ## License
-
+Distributed under the GNU General Public License
 
 ## Acknowledgments
 
